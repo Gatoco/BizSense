@@ -6,9 +6,17 @@ let mainWindow;
 let pythonProcess;
 
 function createWindow() {
+  const projectRoot = path.join(__dirname, '..');
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
+    minWidth: 1000,
+    minHeight: 700,
+    title: 'BizSense',
+    backgroundColor: '#f5f7fa',
+    autoHideMenuBar: true,
+    center: true,
+    show: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
@@ -18,19 +26,22 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, 'renderer', 'index.html'));
 
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
+  });
+
   if (process.argv.includes('--dev')) {
     mainWindow.webContents.openDevTools();
   }
 }
 
 function startPythonServer() {
-  const venvPython = process.platform === 'win32' 
-    ? path.join(__dirname, '..', '.venv', 'Scripts', 'python.exe')
-    : path.join(__dirname, '..', '.venv', 'bin', 'python');
-  
-  pythonProcess = spawn(venvPython, [
-    path.join(__dirname, '..', 'ml', 'main.py')
-  ]);
+  const projectRoot = path.join(__dirname, '..');
+  const venvPython = process.platform === 'win32'
+    ? path.join(projectRoot, '.venv', 'Scripts', 'python.exe')
+    : path.join(projectRoot, '.venv', 'bin', 'python');
+
+  pythonProcess = spawn(venvPython, ['-m', 'ml.main'], { cwd: projectRoot });
 
   pythonProcess.stdout.on('data', (data) => {
     console.log(`Python: ${data}`);

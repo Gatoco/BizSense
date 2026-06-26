@@ -2,7 +2,7 @@ from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from dataclasses import asdict
 
-from ...application.use_cases import UploadDataUseCase, TrainModelUseCase
+from ml.application.use_cases import UploadDataUseCase, TrainModelUseCase
 
 
 app = FastAPI(title="BizSense API")

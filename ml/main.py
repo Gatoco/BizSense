@@ -1,4 +1,4 @@
-from .infrastructure.api.fastapi_adapter import app
+from ml.infrastructure.api.fastapi_adapter import app
 
 if __name__ == '__main__':
     import uvicorn

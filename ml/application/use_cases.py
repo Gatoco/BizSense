@@ -1,5 +1,5 @@
-from ..domain.models import Dataset, TrainingResult
-from ..domain.services import gradient_descent
+from ml.domain.models import Dataset, TrainingResult
+from ml.domain.services import gradient_descent
 
 
 class TrainModelUseCase:

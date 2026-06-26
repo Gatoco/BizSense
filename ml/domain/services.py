@@ -1,5 +1,5 @@
 from typing import List, Tuple
-from ..domain.models import IterationStep
+from ml.domain.models import IterationStep
 
 
 def gradient_descent(X: List[float], y: List[float], alpha: float = 0.01, iterations: int = 100) -> Tuple[List[float], List[IterationStep]]:
