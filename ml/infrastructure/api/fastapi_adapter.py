@@ -155,7 +155,9 @@ async def train(params: dict):
             x_col=params['x_col'],
             y_col=params['y_col'],
             alpha=params.get('alpha', 0.01),
-            iterations=params.get('iterations', 100)
+            iterations=params.get('iterations', 100),
+            model_type=params.get('model_type', 'linear_regression'),
+            k=params.get('k', 3)
         )
 
         return {

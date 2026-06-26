@@ -14,6 +14,7 @@ class IterationStep:
     gradient_0: float
     gradient_1: float
     predictions: List[float]
+    extra: Optional[dict] = None
 
 
 @dataclass
@@ -101,7 +102,7 @@ class AppConfig:
 class Stats:
     datasets_count: int = 0
     trainings_count: int = 0
-    models_implemented: int = 1
+    models_implemented: int = 4
     last_training: Optional[Training] = None
 
 

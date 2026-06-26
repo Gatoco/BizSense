@@ -2,7 +2,7 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 from ml.domain.models import Dataset, Training, TrainingResult, AppConfig, Stats, InsightsMetrics, ChatMessage
-from ml.domain.services import gradient_descent
+from ml.domain.services import gradient_descent, logistic_gradient_descent, kmeans, neural_network
 from ml.application.ports.dataset_repository import DatasetRepository
 from ml.application.ports.training_repository import TrainingRepository
 from ml.application.ports.config_repository import ConfigRepository
@@ -59,18 +59,29 @@ class TrainModelUseCase:
         self.dataset_repo = dataset_repo
         self.training_repo = training_repo
 
-    def execute(self, dataset_id: int, x_col: str, y_col: str, alpha: float, iterations: int) -> TrainingResult:
+    def execute(self, dataset_id: int, x_col: str, y_col: str, alpha: float, iterations: int, model_type: str = 'linear_regression', k: int = 3) -> TrainingResult:
         dataset = self.dataset_repo.get_by_id(dataset_id, load_data=True)
 
         x_data = dataset.get_column(x_col)
         y_data = dataset.get_column(y_col)
 
-        theta, history, x_mean, x_std = gradient_descent(x_data, y_data, alpha, iterations)
+        if model_type == 'logistic_regression':
+            theta, history, x_mean, x_std = logistic_gradient_descent(x_data, y_data, alpha, iterations)
+            equation = f"g({theta[0]:.4f} + {theta[1]:.4f} * x)"
+        elif model_type == 'kmeans':
+            theta, history, x_mean, x_std = kmeans(x_data, y_data, k=k, iterations=iterations)
+            equation = f"k={k} clusters"
+        elif model_type == 'neural_network':
+            theta, history, x_mean, x_std = neural_network(x_data, y_data, alpha=alpha, iterations=iterations)
+            equation = f"NN(1->4->1), cost={history[-1].cost:.6f}"
+        else:
+            theta, history, x_mean, x_std = gradient_descent(x_data, y_data, alpha, iterations)
+            equation = f"y = {theta[0]:.4f} + {theta[1]:.4f} * x"
 
         training = Training(
             dataset_id=dataset.id,
             dataset_name=dataset.name,
-            model_type='linear_regression',
+            model_type=model_type,
             x_col=x_col,
             y_col=y_col,
             alpha=alpha,
@@ -78,7 +89,7 @@ class TrainModelUseCase:
             theta_0=theta[0],
             theta_1=theta[1],
             final_cost=history[-1].cost if history else 0,
-            equation=f"y = {theta[0]:.4f} + {theta[1]:.4f} * x",
+            equation=equation,
             created_at=datetime.now().isoformat(timespec='seconds')
         )
         training.history = history
@@ -115,7 +126,7 @@ class GetStatsUseCase:
         return Stats(
             datasets_count=len(datasets),
             trainings_count=len(trainings),
-            models_implemented=1,
+            models_implemented=4,
             last_training=last
         )
 

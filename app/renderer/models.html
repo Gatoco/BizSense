@@ -34,7 +34,7 @@
         <div class="model-card">
             <div class="model-card-header">
                 <h3>2. Regresion Logistica</h3>
-                <span class="badge badge-warning">Proximamente</span>
+                <span class="badge badge-success">Implementado</span>
             </div>
             <div class="model-card-body">
                 Clasificacion binaria (ventas buenas/malas, clientes que se van/que se quedan). Usa la funcion sigmoide y su derivada. Conceptos: derivadas (sigmoide), limites (cuando x tiende a +/- infinito).
@@ -44,12 +44,13 @@
                 h(x) = g(theta_0 + theta_1 * x)<br>
                 J(theta) = -sum(y * log(h) + (1-y) * log(1-h))
             </div>
+            <a href="graphics.html" class="btn btn-primary btn-sm">Entrenar este modelo</a>
         </div>
 
         <div class="model-card">
             <div class="model-card-header">
                 <h3>3. K-Means</h3>
-                <span class="badge badge-warning">Proximamente</span>
+                <span class="badge badge-success">Implementado</span>
             </div>
             <div class="model-card-body">
                 Clustering: segmenta negocios o productos en grupos. Conceptos: limites (convergencia cuando las iteraciones tienden a infinito), distancia euclidiana (optimizacion).
@@ -59,12 +60,13 @@
                 Asignar c(i) = argmin_j ||x_i - mu_j||^2<br>
                 Actualizar mu_j = (1/|C_j|) * sum x_i
             </div>
+            <a href="graphics.html" class="btn btn-primary btn-sm">Entrenar este modelo</a>
         </div>
 
         <div class="model-card">
             <div class="model-card-header">
                 <h3>4. Red Neuronal</h3>
-                <span class="badge badge-warning">Proximamente</span>
+                <span class="badge badge-success">Implementado</span>
             </div>
             <div class="model-card-body">
                 Detecta patrones complejos en los datos. Usa backpropagation con la regla de la cadena. Conceptos: derivadas (regla de la cadena), limites (funciones de activacion).
@@ -74,6 +76,7 @@
                 delta^(L) = a^(L) - y<br>
                 delta^(l) = (W^(l+1))^T * delta^(l+1) .* g'(z^(l))
             </div>
+            <a href="graphics.html" class="btn btn-primary btn-sm">Entrenar este modelo</a>
         </div>
     </main>
 
