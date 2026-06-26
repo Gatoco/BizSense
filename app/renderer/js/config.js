@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('default-iterations').value = config.default_iterations;
         document.getElementById('theme').value = config.theme;
         document.getElementById('language').value = config.language;
+        document.getElementById('ai-provider').value = config.ai_provider;
+        document.getElementById('ai-model').value = config.ai_model;
+        document.getElementById('ai-endpoint').value = config.ai_endpoint;
     } catch (err) {
         console.error('Error loading config:', err);
     }
@@ -18,7 +21,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             default_alpha: parseFloat(document.getElementById('default-alpha').value),
             default_iterations: parseInt(document.getElementById('default-iterations').value),
             theme: document.getElementById('theme').value,
-            language: document.getElementById('language').value
+            language: document.getElementById('language').value,
+            ai_provider: document.getElementById('ai-provider').value,
+            ai_model: document.getElementById('ai-model').value,
+            ai_endpoint: document.getElementById('ai-endpoint').value
         };
 
         try {

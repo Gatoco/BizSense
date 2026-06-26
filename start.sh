@@ -23,6 +23,19 @@ echo "Instalando dependencias Node..."
 npm install --silent
 
 echo ""
+echo "Verificando modelo de IA local..."
+if command -v ollama &> /dev/null; then
+    if ! ollama list 2>/dev/null | grep -q "qwen2.5:1.5b"; then
+        echo "Descargando modelo qwen2.5:1.5b (primer inicio, ~1.5GB)..."
+        ollama pull qwen2.5:1.5b
+    else
+        echo "Modelo qwen2.5:1.5b ya descargado"
+    fi
+else
+    echo "Ollama no instalado. El asistente IA usara LM Studio si esta disponible."
+fi
+
+echo ""
 echo "Iniciando aplicacion Electron (backend se inicia automaticamente)..."
 echo ""
 echo "==================================================="

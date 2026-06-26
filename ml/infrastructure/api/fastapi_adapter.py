@@ -1,18 +1,23 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from dataclasses import asdict
 
 from ml.application.use_cases import (
     UploadDataUseCase, ListDatasetsUseCase, GetDatasetUseCase, DeleteDatasetUseCase,
     TrainModelUseCase, GetTrainingHistoryUseCase, GetStatsUseCase,
-    ManageConfigUseCase, PredictUseCase
+    ManageConfigUseCase, PredictUseCase, GenerateInsightsUseCase,
+    DetectAIProviderUseCase, StartModelUseCase, ChatUseCase, ChatHistoryUseCase
 )
 from ml.application.ports.dataset_repository import DatasetRepository
 from ml.application.ports.training_repository import TrainingRepository
 from ml.application.ports.config_repository import ConfigRepository
 from ml.infrastructure.storage.sqlite_adapter import (
-    SQLiteDatasetRepository, SQLiteTrainingRepository, SQLiteConfigRepository, init_db
+    SQLiteDatasetRepository, SQLiteTrainingRepository, SQLiteConfigRepository,
+    SQLiteChatRepository, init_db
 )
+from ml.infrastructure.ai.ollama_adapter import OllamaAdapter
+from ml.infrastructure.ai.lmstudio_adapter import LMStudioAdapter
 from ml.domain.models import AppConfig
 
 
@@ -41,6 +46,13 @@ get_trainings_use_case = GetTrainingHistoryUseCase(training_repo)
 get_stats_use_case = GetStatsUseCase(dataset_repo, training_repo)
 manage_config_use_case = ManageConfigUseCase(config_repo)
 predict_use_case = PredictUseCase()
+insights_use_case = GenerateInsightsUseCase(training_repo, dataset_repo)
+chat_repo = SQLiteChatRepository()
+chat_history_use_case = ChatHistoryUseCase(chat_repo)
+
+ollama_adapter = OllamaAdapter()
+lmstudio_adapter = LMStudioAdapter()
+detect_provider_use_case = DetectAIProviderUseCase([ollama_adapter, lmstudio_adapter])
 
 
 @app.get("/stats")
@@ -225,3 +237,176 @@ async def predict(params: dict):
         theta=params['theta']
     )
     return {'predictions': predictions}
+
+
+@app.get("/insights")
+async def insights():
+    result = insights_use_case.execute()
+    if not result:
+        return {'has_data': False}
+    return {
+        'has_data': True,
+        'trend_direction': result.trend_direction,
+        'trend_rate': result.trend_rate,
+        'trend_rate_label': result.trend_rate_label,
+        'prediction_next': result.prediction_next,
+        'confidence': result.confidence,
+        'confidence_score': result.confidence_score,
+        'interpretation': result.interpretation,
+        'model_type': result.model_type,
+        'dataset_name': result.dataset_name,
+        'dataset_rows': result.dataset_rows,
+        'equation': result.equation,
+        'x_col': result.x_col,
+        'y_col': result.y_col,
+        'x_data': result.x_data,
+        'y_data': result.y_data,
+        'predictions': result.predictions,
+        'future_predictions': result.future_predictions,
+        'future_x': result.future_x
+    }
+
+
+@app.get("/ai/status")
+async def ai_status():
+    config = manage_config_use_case.get()
+    provider_name = config.ai_provider
+
+    if provider_name == "auto":
+        detected = detect_provider_use_case.execute()
+        if detected:
+            provider = detect_provider_use_case.get_provider(detected)
+            return {
+                'available': True,
+                'provider': detected,
+                'model': config.ai_model,
+                'models': provider.list_models()
+            }
+        return {
+            'available': False,
+            'provider': None,
+            'model': config.ai_model,
+            'models': []
+        }
+    else:
+        provider = detect_provider_use_case.get_provider(provider_name)
+        if provider and provider.is_available():
+            return {
+                'available': True,
+                'provider': provider_name,
+                'model': config.ai_model,
+                'models': provider.list_models()
+            }
+        return {
+            'available': False,
+            'provider': provider_name,
+            'model': config.ai_model,
+            'models': []
+        }
+
+
+@app.get("/ai/models")
+async def ai_models():
+    config = manage_config_use_case.get()
+    provider_name = config.ai_provider
+
+    if provider_name == "auto":
+        provider = detect_provider_use_case.get_auto()
+    else:
+        provider = detect_provider_use_case.get_provider(provider_name)
+
+    if not provider:
+        return {'models': []}
+
+    return {'models': provider.list_models()}
+
+
+@app.post("/ai/start")
+async def ai_start():
+    config = manage_config_use_case.get()
+    provider_name = config.ai_provider
+
+    if provider_name == "auto":
+        detected = detect_provider_use_case.execute()
+        if detected:
+            provider = detect_provider_use_case.get_provider(detected)
+        else:
+            provider = ollama_adapter
+    else:
+        provider = detect_provider_use_case.get_provider(provider_name)
+        if not provider:
+            provider = ollama_adapter
+
+    use_case = StartModelUseCase(provider)
+    started = use_case.execute()
+
+    if started and provider.get_name() == "ollama":
+        models = provider.list_models()
+        if config.ai_model not in models:
+            provider.pull_model(config.ai_model)
+
+    return {
+        'started': started,
+        'provider': provider.get_name(),
+        'models': provider.list_models() if started else []
+    }
+
+
+@app.post("/ai/chat")
+async def ai_chat(params: dict):
+    config = manage_config_use_case.get()
+    provider_name = config.ai_provider
+
+    if provider_name == "auto":
+        provider = detect_provider_use_case.get_auto()
+    else:
+        provider = detect_provider_use_case.get_provider(provider_name)
+
+    if not provider or not provider.is_available():
+        raise HTTPException(status_code=503, detail="No AI provider available. Start Ollama or LM Studio.")
+
+    insights_result = insights_use_case.execute()
+    if not insights_result:
+        raise HTTPException(status_code=400, detail="No training data available. Train a model first.")
+
+    messages = params.get('messages', [])
+    model = params.get('model', config.ai_model)
+
+    chat_use_case = ChatUseCase(provider, chat_repo)
+
+    def stream():
+        collected = []
+        try:
+            chat_use_case.execute(
+                messages=messages,
+                model=model,
+                insights=insights_result,
+                on_token=lambda token: collected.append(token)
+            )
+            full = "".join(collected)
+            yield f"data: {__import__('json').dumps({'token': full, 'done': True})}\n\n"
+        except Exception as e:
+            yield f"data: {__import__('json').dumps({'error': str(e)})}\n\n"
+
+    return StreamingResponse(stream(), media_type="text/event-stream")
+
+
+@app.get("/chat/history")
+async def chat_history():
+    messages = chat_history_use_case.list()
+    return [
+        {
+            'id': m.id,
+            'role': m.role,
+            'content': m.content,
+            'training_id': m.training_id,
+            'created_at': m.created_at
+        }
+        for m in messages
+    ]
+
+
+@app.delete("/chat/history")
+async def clear_chat_history():
+    chat_history_use_case.clear()
+    return {'message': 'Chat history cleared'}

@@ -2,7 +2,7 @@ import sqlite3
 import os
 import json
 import pandas as pd
-from ml.domain.models import Dataset, Training, AppConfig
+from ml.domain.models import Dataset, Training, AppConfig, ChatMessage
 from ml.application.ports.dataset_repository import DatasetRepository
 from ml.application.ports.training_repository import TrainingRepository
 from ml.application.ports.config_repository import ConfigRepository
@@ -156,7 +156,10 @@ class SQLiteConfigRepository(ConfigRepository):
         'default_alpha': '0.01',
         'default_iterations': '100',
         'theme': 'dark',
-        'language': 'es'
+        'language': 'es',
+        'ai_provider': 'auto',
+        'ai_model': 'qwen2.5:1.5b',
+        'ai_endpoint': ''
     }
 
     def __init__(self, db_path: str = None):
@@ -223,4 +226,51 @@ def init_db(db_path: str = None):
                 value TEXT NOT NULL
             )
         ''')
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS chat_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                role TEXT NOT NULL,
+                content TEXT NOT NULL,
+                training_id INTEGER,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
         conn.commit()
+
+
+class SQLiteChatRepository:
+    def __init__(self, db_path: str = None):
+        self.db_path = db_path or DB_PATH
+
+    def _conn(self):
+        return sqlite3.connect(self.db_path)
+
+    def save(self, msg: ChatMessage) -> int:
+        with self._conn() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                'INSERT INTO chat_history (role, content, training_id, created_at) VALUES (?, ?, ?, ?)',
+                (msg.role, msg.content, msg.training_id, msg.created_at)
+            )
+            conn.commit()
+            return cursor.lastrowid
+
+    def list_all(self, training_id: int = None) -> list:
+        with self._conn() as conn:
+            cursor = conn.cursor()
+            if training_id:
+                cursor.execute('SELECT * FROM chat_history WHERE training_id = ? ORDER BY id ASC', (training_id,))
+            else:
+                cursor.execute('SELECT * FROM chat_history ORDER BY id ASC')
+            return [
+                ChatMessage(id=r[0], role=r[1], content=r[2], training_id=r[3], created_at=r[4])
+                for r in cursor.fetchall()
+            ]
+
+    def clear(self, training_id: int = None) -> None:
+        with self._conn() as conn:
+            if training_id:
+                conn.execute('DELETE FROM chat_history WHERE training_id = ?', (training_id,))
+            else:
+                conn.execute('DELETE FROM chat_history')
+            conn.commit()

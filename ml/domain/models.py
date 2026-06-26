@@ -69,13 +69,19 @@ class AppConfig:
     default_iterations: int = 100
     theme: str = "dark"
     language: str = "es"
+    ai_provider: str = "auto"
+    ai_model: str = "qwen2.5:1.5b"
+    ai_endpoint: str = ""
 
     def to_dict(self) -> dict:
         return {
             'default_alpha': self.default_alpha,
             'default_iterations': self.default_iterations,
             'theme': self.theme,
-            'language': self.language
+            'language': self.language,
+            'ai_provider': self.ai_provider,
+            'ai_model': self.ai_model,
+            'ai_endpoint': self.ai_endpoint
         }
 
     @classmethod
@@ -84,7 +90,10 @@ class AppConfig:
             default_alpha=float(data.get('default_alpha', 0.01)),
             default_iterations=int(data.get('default_iterations', 100)),
             theme=data.get('theme', 'dark'),
-            language=data.get('language', 'es')
+            language=data.get('language', 'es'),
+            ai_provider=data.get('ai_provider', 'auto'),
+            ai_model=data.get('ai_model', 'qwen2.5:1.5b'),
+            ai_endpoint=data.get('ai_endpoint', '')
         )
 
 
@@ -94,3 +103,34 @@ class Stats:
     trainings_count: int = 0
     models_implemented: int = 1
     last_training: Optional[Training] = None
+
+
+@dataclass
+class InsightsMetrics:
+    trend_direction: str = ""
+    trend_rate: float = 0.0
+    trend_rate_label: str = ""
+    prediction_next: float = 0.0
+    confidence: str = ""
+    confidence_score: float = 0.0
+    interpretation: str = ""
+    model_type: str = ""
+    dataset_name: str = ""
+    dataset_rows: int = 0
+    equation: str = ""
+    x_col: str = ""
+    y_col: str = ""
+    x_data: List[float] = field(default_factory=list)
+    y_data: List[float] = field(default_factory=list)
+    predictions: List[float] = field(default_factory=list)
+    future_predictions: List[float] = field(default_factory=list)
+    future_x: List[float] = field(default_factory=list)
+
+
+@dataclass
+class ChatMessage:
+    id: Optional[int] = None
+    role: str = ""
+    content: str = ""
+    training_id: Optional[int] = None
+    created_at: Optional[str] = None

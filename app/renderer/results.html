@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BizSense - Resultados</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+
+    <main class="content">
+        <div class="page-header">
+            <h2>Resultados</h2>
+            <p>Analisis del ultimo entrenamiento en lenguaje simple</p>
+        </div>
+
+        <div id="no-data" class="empty-state hidden">
+            <div class="icon">[!]</div>
+            <p>No hay entrenamientos registrados. Entrena un modelo primero.</p>
+            <a href="graphics.html" class="btn btn-primary">Ir a Funcion Grafica</a>
+        </div>
+
+        <div id="results-content" class="hidden">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Tendencia</div>
+                    <div class="stat-value" id="trend-direction">-</div>
+                    <div class="stat-sub" id="trend-rate"></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Prediccion proximo periodo</div>
+                    <div class="stat-value" id="prediction-next">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Confianza del modelo</div>
+                    <div class="stat-value" id="confidence">-</div>
+                    <div class="stat-sub" id="confidence-score"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Interpretacion</div>
+                <p id="interpretation" style="font-size: 1rem; line-height: 1.8;"></p>
+                <div style="margin-top: 16px; display: flex; gap: 24px; flex-wrap: wrap;">
+                    <div><span class="text-muted">Modelo:</span> <span class="badge badge-info" id="model-type"></span></div>
+                    <div><span class="text-muted">Dataset:</span> <span id="dataset-name"></span></div>
+                    <div><span class="text-muted">Registros:</span> <span id="dataset-rows"></span></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Grafico de prediccion</div>
+                <canvas id="prediction-chart" style="max-height: 350px;"></canvas>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Asistente IA</div>
+                <div id="ai-status-bar" style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+                    <span id="ai-status-indicator" class="badge badge-warning">Verificando...</span>
+                    <span id="ai-provider-info" class="text-muted" style="font-size: 0.85rem;"></span>
+                    <button id="ai-start-btn" class="btn btn-sm hidden">Iniciar modelo</button>
+                    <button id="ai-clear-btn" class="btn btn-sm btn-danger hidden">Limpiar chat</button>
+                </div>
+
+                <div id="chat-container" style="max-height: 400px; overflow-y: auto; background: var(--surface-2); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                    <div id="chat-messages"></div>
+                </div>
+
+                <div style="display: flex; gap: 12px;">
+                    <input type="text" id="chat-input" class="form-input" placeholder="Escribe tu pregunta..." disabled>
+                    <button id="chat-send-btn" class="btn btn-primary" disabled>Enviar</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/sidebar.js"></script>
+    <script src="js/results.js"></script>
+    <script src="js/chat.js"></script>
+</body>
+</html>

@@ -49,6 +49,35 @@
             </div>
         </div>
 
+        <div class="card">
+            <div class="card-title">Asistente IA</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Proveedor de IA</label>
+                    <select id="ai-provider" class="form-select">
+                        <option value="auto">Auto (detectar)</option>
+                        <option value="ollama">Ollama</option>
+                        <option value="lmstudio">LM Studio</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Modelo</label>
+                    <input type="text" id="ai-model" class="form-input" value="qwen2.5:1.5b" placeholder="qwen2.5:1.5b">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Endpoint personalizado (opcional)</label>
+                <input type="text" id="ai-endpoint" class="form-input" placeholder="http://localhost:11434">
+            </div>
+            <p class="text-muted" style="font-size: 0.85rem;">
+                Modelos recomendados (livianos):<br>
+                - qwen2.5:0.5b (mas rapido, ~500MB)<br>
+                - qwen2.5:1.5b (recomendado, ~1.5GB)<br>
+                - tinyllama:1.1b (~1.1GB)<br>
+                - gemma-2-2b (~2GB)
+            </p>
+        </div>
+
         <button id="save-btn" class="btn btn-primary">Guardar configuracion</button>
         <span id="save-status" class="text-primary hidden" style="margin-left: 16px;">Guardado</span>
     </main>
