@@ -32,3 +32,5 @@ Thumbs.db
 # Output files
 output/
 results/
+data/bizsense.db
+data/datasets/

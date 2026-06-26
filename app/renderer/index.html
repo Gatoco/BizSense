@@ -3,90 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BizSense — Regresión Lineal</title>
+    <title>BizSense - Dashboard</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
-    <header>
-        <h1>BizSense</h1>
-        <p>Análisis Predictivo para Pymes — Regresión Lineal</p>
-    </header>
+    <div id="sidebar-container"></div>
 
-    <section id="upload-section">
-        <h2>1. Cargar datos</h2>
-        <div class="upload-area">
-            <input type="file" id="csv-input" accept=".csv">
-            <p>Selecciona un archivo CSV</p>
+    <main class="content">
+        <div class="page-header">
+            <h2>Dashboard</h2>
+            <p>Resumen general del sistema</p>
         </div>
-        
-        <div id="preview-container" hidden>
-            <h3>Vista previa de datos</h3>
-            <div id="preview-table"></div>
-            <p id="row-count"></p>
-        </div>
-        
-        <div id="column-selector" hidden>
-            <h3>Configurar entrenamiento</h3>
-            <div class="form-row">
-                <label>Eje X (variable independiente):
-                    <select id="x-col"></select>
-                </label>
-                <label>Eje Y (variable a predecir):
-                    <select id="y-col"></select>
-                </label>
-            </div>
-            <div class="form-row">
-                <label>α (tasa de aprendizaje):
-                    <input type="number" id="alpha" value="0.01" step="0.001" min="0.0001">
-                </label>
-                <label>Iteraciones:
-                    <input type="number" id="iterations" value="100" step="10" min="10" max="1000">
-                </label>
-            </div>
-            <button id="train-btn" class="btn-primary">Entrenar modelo</button>
-        </div>
-    </section>
 
-    <section id="dashboard" hidden>
-        <h2>2. Entrenamiento — Gradiente Descendente</h2>
-        
-        <div id="animation-controls">
-            <button id="play-btn" class="btn-control">Play</button>
-            <button id="pause-btn" class="btn-control">Pausa</button>
-            <button id="reset-btn" class="btn-control">Reiniciar</button>
-            <button id="step-btn" class="btn-control">Paso</button>
-            <div class="speed-control">
-                <label>Velocidad:</label>
-                <input type="range" id="speed-slider" min="50" max="1000" value="200">
-                <span id="speed-value">200ms</span>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Datasets cargados</div>
+                <div class="stat-value" id="stat-datasets">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Entrenamientos totales</div>
+                <div class="stat-value" id="stat-trainings">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Modelos implementados</div>
+                <div class="stat-value" id="stat-models">0</div>
             </div>
         </div>
 
-        <div class="charts-grid">
-            <div class="chart-container">
-                <h3>Datos + Línea de Regresión</h3>
-                <canvas id="regression-chart"></canvas>
+        <div class="card" id="last-training-card">
+            <div class="card-title">Ultimo entrenamiento</div>
+            <div id="last-training-content">
+                <div class="empty-state">
+                    <p>No hay entrenamientos registrados</p>
+                    <a href="graphics.html" class="btn btn-primary">Ir a Funcion Grafica</a>
+                </div>
             </div>
-            <div class="chart-container">
-                <h3>Función de Costo J(θ)</h3>
-                <canvas id="cost-chart"></canvas>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Acceso rapido</div>
+            <div class="quick-actions">
+                <a href="data.html" class="quick-action">
+                    <div class="qa-icon">[+]</div>
+                    <div class="qa-label">Subir CSV</div>
+                </a>
+                <a href="graphics.html" class="quick-action">
+                    <div class="qa-icon">[>]</div>
+                    <div class="qa-label">Entrenar modelo</div>
+                </a>
+                <a href="models.html" class="quick-action">
+                    <div class="qa-icon">[M]</div>
+                    <div class="qa-label">Ver modelos</div>
+                </a>
             </div>
         </div>
+    </main>
 
-        <div id="formula-panel">
-            <h3>Cálculos en tiempo real</h3>
-            <div id="iteration-info"></div>
-            <div id="formulas"></div>
-        </div>
-
-        <div id="results" hidden>
-            <h3>Resultados Finales</h3>
-            <div id="final-values"></div>
-        </div>
-    </section>
-
-    <script src="renderer.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/dashboard.js"></script>
 </body>
 </html>

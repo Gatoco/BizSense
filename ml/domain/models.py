@@ -1,5 +1,6 @@
-from dataclasses import dataclass
-from typing import List
+from dataclasses import dataclass, field
+from typing import List, Optional
+from datetime import datetime
 
 
 @dataclass
@@ -27,9 +28,69 @@ class TrainingResult:
 
 @dataclass
 class Dataset:
-    columns: List[str]
-    data: dict
-    rows: int
-    
+    id: Optional[int] = None
+    name: str = ""
+    filename: str = ""
+    columns: List[str] = field(default_factory=list)
+    rows: int = 0
+    created_at: Optional[str] = None
+    _data: Optional[dict] = None
+
     def get_column(self, col_name: str) -> List[float]:
-        return self.data[col_name]
+        if self._data is None:
+            raise ValueError("Dataset data not loaded")
+        return self._data[col_name]
+
+    def set_data(self, data: dict):
+        self._data = data
+
+
+@dataclass
+class Training:
+    id: Optional[int] = None
+    dataset_id: int = 0
+    dataset_name: str = ""
+    model_type: str = ""
+    x_col: str = ""
+    y_col: str = ""
+    alpha: float = 0.01
+    iterations: int = 100
+    theta_0: float = 0.0
+    theta_1: float = 0.0
+    final_cost: float = 0.0
+    equation: str = ""
+    created_at: Optional[str] = None
+    history: Optional[List[IterationStep]] = None
+
+
+@dataclass
+class AppConfig:
+    default_alpha: float = 0.01
+    default_iterations: int = 100
+    theme: str = "dark"
+    language: str = "es"
+
+    def to_dict(self) -> dict:
+        return {
+            'default_alpha': self.default_alpha,
+            'default_iterations': self.default_iterations,
+            'theme': self.theme,
+            'language': self.language
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> 'AppConfig':
+        return cls(
+            default_alpha=float(data.get('default_alpha', 0.01)),
+            default_iterations=int(data.get('default_iterations', 100)),
+            theme=data.get('theme', 'dark'),
+            language=data.get('language', 'es')
+        )
+
+
+@dataclass
+class Stats:
+    datasets_count: int = 0
+    trainings_count: int = 0
+    models_implemented: int = 1
+    last_training: Optional[Training] = None

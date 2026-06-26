@@ -13,7 +13,7 @@ function createWindow() {
     minWidth: 1000,
     minHeight: 700,
     title: 'BizSense',
-    backgroundColor: '#f5f7fa',
+    backgroundColor: '#0f0f23',
     autoHideMenuBar: true,
     center: true,
     show: false,

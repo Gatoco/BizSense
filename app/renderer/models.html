@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BizSense - Modelos ML</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+
+    <main class="content">
+        <div class="page-header">
+            <h2>Modelos de Machine Learning</h2>
+            <p>Modelos disponibles con sus conceptos matematicos</p>
+        </div>
+
+        <div class="model-card">
+            <div class="model-card-header">
+                <h3>1. Regresion Lineal</h3>
+                <span class="badge badge-success">Implementado</span>
+            </div>
+            <div class="model-card-body">
+                Predice valores continuos usando una linea recta. Usa gradiente descendente para minimizar el error cuadratico medio. Conceptos: derivadas (gradiente), limites (convergencia).
+            </div>
+            <div class="model-card-formulas">
+                h(x) = theta_0 + theta_1 * x<br>
+                J(theta) = (1/2m) * sum(h(x_i) - y_i)^2<br>
+                dJ/dtheta_j = (1/m) * sum(h(x_i) - y_i) * x_i
+            </div>
+            <a href="graphics.html" class="btn btn-primary btn-sm">Entrenar este modelo</a>
+        </div>
+
+        <div class="model-card">
+            <div class="model-card-header">
+                <h3>2. Regresion Logistica</h3>
+                <span class="badge badge-warning">Proximamente</span>
+            </div>
+            <div class="model-card-body">
+                Clasificacion binaria (ventas buenas/malas, clientes que se van/que se quedan). Usa la funcion sigmoide y su derivada. Conceptos: derivadas (sigmoide), limites (cuando x tiende a +/- infinito).
+            </div>
+            <div class="model-card-formulas">
+                g(z) = 1 / (1 + e^-z)<br>
+                h(x) = g(theta_0 + theta_1 * x)<br>
+                J(theta) = -sum(y * log(h) + (1-y) * log(1-h))
+            </div>
+        </div>
+
+        <div class="model-card">
+            <div class="model-card-header">
+                <h3>3. K-Means</h3>
+                <span class="badge badge-warning">Proximamente</span>
+            </div>
+            <div class="model-card-body">
+                Clustering: segmenta negocios o productos en grupos. Conceptos: limites (convergencia cuando las iteraciones tienden a infinito), distancia euclidiana (optimizacion).
+            </div>
+            <div class="model-card-formulas">
+                J = sum ||x_i - mu_c(i)||^2<br>
+                Asignar c(i) = argmin_j ||x_i - mu_j||^2<br>
+                Actualizar mu_j = (1/|C_j|) * sum x_i
+            </div>
+        </div>
+
+        <div class="model-card">
+            <div class="model-card-header">
+                <h3>4. Red Neuronal</h3>
+                <span class="badge badge-warning">Proximamente</span>
+            </div>
+            <div class="model-card-body">
+                Detecta patrones complejos en los datos. Usa backpropagation con la regla de la cadena. Conceptos: derivadas (regla de la cadena), limites (funciones de activacion).
+            </div>
+            <div class="model-card-formulas">
+                a^(l) = g(W^(l) * a^(l-1) + b^(l))<br>
+                delta^(L) = a^(L) - y<br>
+                delta^(l) = (W^(l+1))^T * delta^(l+1) .* g'(z^(l))
+            </div>
+        </div>
+    </main>
+
+    <script src="js/sidebar.js"></script>
+    <script src="js/models.js"></script>
+</body>
+</html>

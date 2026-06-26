@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BizSense - Funcion Grafica</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+
+    <main class="content">
+        <div class="page-header">
+            <h2>Funcion Grafica</h2>
+            <p>Entrenamiento del modelo con visualizacion paso a paso</p>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Configurar entrenamiento</div>
+            <div id="config-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Dataset</label>
+                        <select id="dataset-select" class="form-select">
+                            <option value="">Cargar datasets...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Modelo</label>
+                        <select id="model-select" class="form-select" disabled>
+                            <option value="linear_regression">Regresion Lineal</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Eje X (variable independiente)</label>
+                        <select id="x-col" class="form-select"><option value="">--</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Eje Y (variable a predecir)</label>
+                        <select id="y-col" class="form-select"><option value="">--</option></select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Alpha (tasa de aprendizaje)</label>
+                        <input type="number" id="alpha" class="form-input" value="0.01" step="0.001" min="0.0001">
+                    </div>
+                    <div class="form-group">
+                        <label>Iteraciones</label>
+                        <input type="number" id="iterations" class="form-input" value="100" step="10" min="10" max="1000">
+                    </div>
+                </div>
+                <button id="train-btn" class="btn btn-primary">Entrenar modelo</button>
+            </div>
+            <div id="no-datasets" class="empty-state hidden">
+                <p>No hay datasets cargados. Ve a la seccion Datos para subir un CSV.</p>
+                <a href="data.html" class="btn btn-primary">Ir a Datos</a>
+            </div>
+        </div>
+
+        <div id="dashboard" class="hidden">
+            <div class="controls-bar">
+                <button id="play-btn" class="btn btn-primary btn-sm">Play</button>
+                <button id="pause-btn" class="btn btn-sm">Pausa</button>
+                <button id="reset-btn" class="btn btn-sm">Reiniciar</button>
+                <button id="step-btn" class="btn btn-sm">Paso</button>
+                <div class="speed-control">
+                    <label>Velocidad:</label>
+                    <input type="range" id="speed-slider" min="50" max="1000" value="200">
+                    <span id="speed-value">200ms</span>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h3>Datos + Linea de Regresion</h3>
+                    <canvas id="regression-chart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Funcion de Costo J(theta)</h3>
+                    <canvas id="cost-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="formula-panel">
+                <h3>Calculos en tiempo real</h3>
+                <div class="iteration-info" id="iteration-info"></div>
+                <div id="formulas"></div>
+            </div>
+
+            <div class="results-panel hidden" id="results">
+                <h3>Resultados Finales</h3>
+                <div class="results-grid" id="final-values"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/sidebar.js"></script>
+    <script src="js/graphics.js"></script>
+</body>
+</html>

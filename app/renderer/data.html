@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BizSense - Datos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+
+    <main class="content">
+        <div class="page-header">
+            <h2>Datos</h2>
+            <p>Gestion de datasets CSV</p>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Subir nuevo dataset</div>
+            <div class="upload-area">
+                <input type="file" id="csv-input" accept=".csv">
+                <p>Selecciona un archivo CSV para cargar</p>
+            </div>
+            <div id="upload-result" class="mt-20 hidden"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Datasets cargados</div>
+            <div id="datasets-list">
+                <div class="empty-state">
+                    <p>No hay datasets cargados</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card hidden" id="preview-card">
+            <div class="card-title">Vista previa: <span id="preview-name"></span></div>
+            <div id="preview-table"></div>
+        </div>
+    </main>
+
+    <script src="js/sidebar.js"></script>
+    <script src="js/data.js"></script>
+</body>
+</html>
