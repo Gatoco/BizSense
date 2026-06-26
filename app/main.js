@@ -63,7 +63,7 @@ function startPythonServer() {
 }
 
 function waitForBackend(callback) {
-  const maxAttempts = 15;
+  const maxAttempts = 30;
   let attempts = 0;
 
   const check = () => {

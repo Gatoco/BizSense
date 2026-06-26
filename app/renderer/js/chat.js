@@ -29,7 +29,7 @@ async function checkAIStatus() {
         if (data.available) {
             indicator.textContent = `Conectado - ${data.provider}`;
             indicator.className = 'badge badge-success';
-            info.textContent = `Modelo: ${data.model}`;
+            info.textContent = `Modelo: ${data.current_model || data.model}`;
             startBtn.classList.add('hidden');
             clearBtn.classList.remove('hidden');
             input.disabled = false;

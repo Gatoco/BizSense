@@ -276,32 +276,40 @@ async def ai_status():
         detected = detect_provider_use_case.execute()
         if detected:
             provider = detect_provider_use_case.get_provider(detected)
+            models = provider.list_models()
+            current = config.ai_model if config.ai_model in models else (models[0] if models else config.ai_model)
             return {
                 'available': True,
                 'provider': detected,
-                'model': config.ai_model,
-                'models': provider.list_models()
+                'model': current,
+                'models': models,
+                'current_model': current
             }
         return {
             'available': False,
             'provider': None,
             'model': config.ai_model,
-            'models': []
+            'models': [],
+            'current_model': None
         }
     else:
         provider = detect_provider_use_case.get_provider(provider_name)
         if provider and provider.is_available():
+            models = provider.list_models()
+            current = config.ai_model if config.ai_model in models else (models[0] if models else config.ai_model)
             return {
                 'available': True,
                 'provider': provider_name,
-                'model': config.ai_model,
-                'models': provider.list_models()
+                'model': current,
+                'models': models,
+                'current_model': current
             }
         return {
             'available': False,
             'provider': provider_name,
             'model': config.ai_model,
-            'models': []
+            'models': [],
+            'current_model': None
         }
 
 
@@ -370,7 +378,16 @@ async def ai_chat(params: dict):
         raise HTTPException(status_code=400, detail="No training data available. Train a model first.")
 
     messages = params.get('messages', [])
-    model = params.get('model', config.ai_model)
+    model = params.get('model')
+
+    if not model:
+        models = provider.list_models()
+        if config.ai_model in models:
+            model = config.ai_model
+        elif models:
+            model = models[0]
+        else:
+            model = config.ai_model
 
     chat_use_case = ChatUseCase(provider, chat_repo)
 

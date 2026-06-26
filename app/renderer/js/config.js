@@ -10,11 +10,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('theme').value = config.theme;
         document.getElementById('language').value = config.language;
         document.getElementById('ai-provider').value = config.ai_provider;
-        document.getElementById('ai-model').value = config.ai_model;
         document.getElementById('ai-endpoint').value = config.ai_endpoint;
+
+        await loadModels(config.ai_model);
     } catch (err) {
         console.error('Error loading config:', err);
     }
+
+    document.getElementById('ai-provider').addEventListener('change', () => loadModels(''));
 
     document.getElementById('save-btn').addEventListener('click', async () => {
         const config = {
@@ -43,3 +46,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 });
+
+async function loadModels(selectedModel) {
+    const select = document.getElementById('ai-model');
+    select.innerHTML = '<option value="">Auto (usar modelo activo)</option>';
+
+    try {
+        const res = await fetch(`${API}/ai/models`);
+        const data = await res.json();
+
+        if (data.models && data.models.length > 0) {
+            data.models.forEach(m => {
+                const opt = new Option(m, m);
+                if (m === selectedModel) opt.selected = true;
+                select.add(opt);
+            });
+        }
+
+        if (selectedModel && selectedModel !== 'qwen2.5:1.5b' && !data.models.includes(selectedModel)) {
+            const opt = new Option(selectedModel + ' (no disponible)', selectedModel);
+            select.add(opt);
+            select.value = selectedModel;
+        }
+    } catch (err) {
+        console.error('Error loading models:', err);
+        const opt = new Option('No se pudieron cargar modelos', '');
+        select.add(opt);
+    }
+}
