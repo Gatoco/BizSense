@@ -1,280 +1,254 @@
 ```
- ___ _        _____
-| _ (_)___   |__ / ___ _ __  ___ _ _  __ _ _ __  ___
-| _ \ / -_)   |_ \/ _ \ '_ \/ -_) ' \/ _` | '  \/ -_)
-|___/_\___|  |___/\___/ .__/\___|_||_\__,_|_|_|_\___|
-                      |_|
-       Sistema de Analisis Predictivo para Pymes
+ ____  _              _
+| __ )| | _____  _   _| |_ ___ _ __ ___
+|  _ \| |/ _ \ \/ / / __/ _ \ '__/ _ \
+| |_) | | (_) >  < | ||  __/ | |  __/
+|____/|_|\___/_/\_\ \__\___|_|  \___|
+        Analisis Predictivo para Pymes
 ```
 
+[![Calculo Diferencial](https://img.shields.io/badge/Calculo-Diferencial-9cf)]()
+[![Arquitectura Hexagonal](https://img.shields.io/badge/Arquitectura-Hexagonal-00d4ff)]()
 [![Python](https://img.shields.io/badge/Python-3.8+-blue?logo=python)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi)](https://fastapi.tiangolo.com)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?logo=fastapi)](https://fastapi.tiangolo.com)
 [![Electron](https://img.shields.io/badge/Electron-Desktop-9cf?logo=electron)](https://electronjs.org)
-[![Chart.js](https://img.shields.io/badge/Chart.js-FF6384?logo=chartdotjs)](https://chartjs.org)
-[![MathJax](https://img.shields.io/badge/MathJax-LaTeX-008080)](https://mathjax.org)
 [![SQLite](https://img.shields.io/badge/SQLite-003B57?logo=sqlite)](https://sqlite.org)
-[![NumPy](https://img.shields.io/badge/NumPy-013243?logo=numpy)](https://numpy.org)
-[![Pandas](https://img.shields.io/badge/Pandas-150458?logo=pandas)](https://pandas.pydata.org)
-[![Ollama](https://img.shields.io/badge/Ollama-Local_AI-000?logo=ollama)](https://ollama.com)
-[![LM Studio](https://img.shields.io/badge/LM_Studio-Local_AI-00d4ff)](https://lmstudio.ai)
-[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
+[![NumPy](https://img.shields.io/badge/NumPy-ML-013243?logo=numpy)](https://numpy.org)
+[![IA Local](https://img.shields.io/badge/IA-Local_Ollama_LM_Studio-00d4ff)]()
+[![License](https://img.shields.io/badge/License-MIT-yellow)]()
 
 ---
 
-## Descripcion
+## Que es BizSense?
 
-BizSense es una aplicacion de escritorio que ayuda a pequenas y medianas empresas a tomar decisiones basadas en datos. Visualiza como el Calculo Diferencial (derivadas, gradientes, limites) permite que las maquinas aprendan. Disenada para ser intuitiva para trabajadores de pymes con resultados en lenguaje simple, con asistencia de IA local para responder dudas.
+BizSense es una aplicacion de escritorio que permite a pequenas y medianas empresas **predecir ventas, segmentar clientes y optimizar precios** mediante modelos de Machine Learning.
 
-Proyecto academico para **Calculo Diferencial**  
-Autores: Benjamin Cifuentes, Benjamin Contesso
+La particularidad de BizSense es que **visualiza el calculo matematico detras del aprendizaje automatico**: el usuario puede observar, paso a paso, como las **derivadas** guian al modelo hacia la solucion, como los **limites** explican la convergencia, y como la **regla de la cadena** permite el backpropagation en redes neuronales.
 
----
-
-## Quick Start
-
-```bash
-./start.sh
-```
-
-**Backend:** `http://localhost:5000`  
-**Frontend:** Ventana Electron independiente  
-**IA Local:** Detecta automaticamente LM Studio (puerto 1234) u Ollama (puerto 11434)
+> Proyecto academico para **Calculo Diferencial**
+> Autores: Benjamin Cifuentes, Benjamin Contesso
+> Docente: Marcelo Andres Sepulveda Albornoz
 
 ---
 
 ## Key Features
 
-| Caracteristica | Que hace |
-|---|---|
-| **Upload CSV** | Sube datos, visualiza preview en tabla |
-| **4 Modelos ML** | Regresion Lineal, Logistica, K-Means, Red Neuronal |
-| **Animacion paso a paso** | Control Play/Pausa/Paso + slider de velocidad |
-| **Formulas en tiempo real** | LaTeX con MathJax, valores numericos en cada iteracion |
-| **Resultados en lenguaje simple** | Metricas no tecnicas: tendencia, prediccion, confianza |
-| **IA Local** | Chat con modelo local (Ollama/LM Studio) para responder dudas |
-| **Persistencia** | SQLite guarda datasets, entrenamientos, historial de chat |
-| **Tema oscuro** | Style LM Studio (bg #0f0f23, cyan #00d4ff) |
-| **Dashboard** | Metricas globales, ultimo entrenamiento, acceso rapido |
+- **4 modelos de Machine Learning** implementados desde cero (sin librerias de ML)
+- **Visualizacion paso a paso** del entrenamiento con control de velocidad
+- **Formulas matematicas en tiempo real** renderizadas con LaTeX
+- **Resultados en lenguaje simple** para trabajadores de pymes (no tecnicos)
+- **Asistente de IA local** que responde dudas sobre los resultados
+- **Persistencia completa** con SQLite (datasets, entrenamientos, historial de chat)
+- **Tema oscuro** inspirado en LM Studio
 
 ---
 
-## Conceptos de Calculo Diferencial Usados
+## Modelos y Conceptos de Calculo
 
-### Derivadas (Gradiente Descendente)
-```
-Regresion Lineal: Minimizar funcion de costo
+### 1. Regresion Lineal -- Derivadas (Gradiente Descendente)
 
-h(x) = theta_0 + theta_1 * x                           -> Hipotesis (linea)
-J(theta) = (1/2m) * sum(h(x_i) - y_i)^2                -> Funcion de costo (error)
-dJ/dtheta_0 = (1/m) * sum(h(x_i) - y_i)                 -> Derivada parcial 1
-dJ/dtheta_1 = (1/m) * sum(h(x_i) - y_i) * x_i           -> Derivada parcial 2
-theta_j := theta_j - alpha * dJ/dtheta_j                -> Actualizacion (descenso)
-```
+Predice valores continuos (ej: ventas futuras) ajustando una linea recta.
 
-### Funcion Sigmoide (Regresion Logistica)
 ```
-g(z) = 1 / (1 + e^-z)
-Limites: g(z) -> 1 cuando z -> +inf
-         g(z) -> 0 cuando z -> -inf
+h(x) = theta_0 + theta_1 * x                        Hipotesis
+J(theta) = (1/2m) * sum(h(x_i) - y_i)^2             Funcion de costo
+dJ/dtheta_j = (1/m) * sum(h(x_i) - y_i) * x_i        Derivada parcial
+theta_j := theta_j - alpha * dJ/dtheta_j             Actualizacion
 ```
 
-### Limites (Convergencia en K-Means)
-```
-Cuando las iteraciones tienden a infinito, las asignaciones
-de clusters y los centroides dejan de cambiar.
-```
-
-### Regla de la Cadena (Backpropagation en Red Neuronal)
-```
-delta^(L) = a^(L) - y                           -> Error en capa de salida
-delta^(l) = (W^(l+1))^T * delta^(l+1) .* g'(z) -> Propagacion hacia atras
-dJ/dW = delta * a^T                              -> Gradiente de pesos
-```
+**Concepto clave:** Las derivadas parciales indican la direccion de maximo crecimiento del error. El gradiente descendente se mueve en direccion contraria para minimizarlo.
 
 ---
 
-## Arquitectura (Hexagonal - Puertos y Adaptadores)
+### 2. Regresion Logistica -- Derivadas de la Sigmoide + Limites
+
+Clasifica en dos categorias (ej: cliente se queda / se va).
 
 ```
-app/ (Electron)
-  main.js          -> Spawnea backend Python, espera a que este listo
-  renderer/
-    index.html     -> Dashboard (metricas, ultimo entrenamiento)
-    models.html    -> Lista de modelos con formulas
-    graphics.html  -> Entrenamiento animado paso a paso
-    results.html   -> Resultados no tecnicos + chat con IA
-    data.html      -> Gestion de datasets CSV
-    config.html    -> Configuracion global + IA
-    style.css      -> Tema oscuro LM Studio
-    js/
-      sidebar.js      -> Navegacion inyectada dinamicamente
-      dashboard.js    -> Logica dashboard
-      graphics.js     -> Animacion por modelo (4 tipos)
-      results.js      -> Metricas + grafico prediccion
-      chat.js         -> Chat streaming con IA local
-      data.js         -> CRUD datasets
-      config.js       -> Guardar/cargar config
-
-ml/ (Python - FastAPI)
-  domain/                   -> Capa interna (logica pura)
-    models.py               -> Entidades: Dataset, Training, Config, Stats, etc.
-    services.py             -> 4 servicios ML: gradient_descent, logistic, kmeans, neural
-
-  application/              -> Capa media (casos de uso)
-    use_cases.py            -> 13 casos de uso
-    ports/                  -> Puertos (interfaces abstractas)
-      dataset_repository.py -> save, get, list, delete
-      training_repository.py-> save, get, list, get_last
-      config_repository.py  -> get_all, update
-      ai_provider.py        -> is_available, chat, list_models, start, pull
-
-  infrastructure/           -> Capa externa (adaptadores)
-    api/
-      fastapi_adapter.py    -> 17 endpoints REST
-    storage/
-      sqlite_adapter.py     -> Implementa los puertos con SQLite
-    ai/
-      ollama_adapter.py     -> Provider local via Ollama (puerto 11434)
-      lmstudio_adapter.py   -> Provider local via LM Studio (puerto 1234)
-
-data/
-  bizsense.db               -> SQLite (datasets, trainings, config, chat_history)
-  datasets/                 -> CSVs subidos por el usuario
-  *.csv                     -> Datasets de ejemplo
+g(z) = 1 / (1 + e^(-z))                              Funcion sigmoide
+h(x) = g(theta_0 + theta_1 * x)                      Probabilidad
+J(theta) = -(1/m) * sum[y*log(h) + (1-y)*log(1-h)]   Cross-entropy
 ```
 
-**Flujo de dependencias:**
-```
-infrastructure/ -> application/ -> domain/
-  (adaptadores)   (casos de uso)  (logica pura)
-```
+**Concepto clave (limites):**
+- Cuando `z -> +inf`, `g(z) -> 1` (clasificacion positiva segura)
+- Cuando `z -> -inf`, `g(z) -> 0` (clasificacion negativa segura)
 
 ---
 
-## Modelos Implementados
+### 3. K-Means -- Limites (Convergencia)
 
-| # | Modelo | Estado | Concepto de Calculo | Visualizacion |
-|---|--------|--------|---------------------|---------------|
-| 1 | Regresion Lineal | Implementado | Derivadas (gradiente descendente) | Linea recta que se ajusta |
-| 2 | Regresion Logistica | Implementado | Sigmoide + limites | Curva sigmoide |
-| 3 | K-Means | Implementado | Limites (convergencia) | Puntos coloreados + centroides |
-| 4 | Red Neuronal | Implementado | Regla de la cadena (backprop) | Curva de prediccion |
-
----
-
-## API Endpoints
-
-| Endpoint | Metodo | Descripcion |
-|----------|--------|-------------|
-| `/stats` | GET | Metricas del dashboard |
-| `/datasets` | GET | Listar datasets |
-| `/datasets` | POST | Subir CSV |
-| `/datasets/{id}` | GET | Preview de dataset |
-| `/datasets/{id}` | DELETE | Eliminar dataset |
-| `/train` | POST | Entrenar modelo (4 tipos) |
-| `/trainings` | GET | Historial de entrenamientos |
-| `/trainings/{id}` | GET | Detalle de entrenamiento |
-| `/predict` | POST | Predecir con modelo entrenado |
-| `/insights` | GET | Metricas no tecnicas del ultimo entrenamiento |
-| `/config` | GET | Configuracion actual |
-| `/config` | POST | Actualizar configuracion |
-| `/ai/status` | GET | Estado del proveedor IA |
-| `/ai/models` | GET | Modelos disponibles |
-| `/ai/start` | POST | Iniciar servidor local |
-| `/ai/chat` | POST | Chat streaming con IA (SSE) |
-| `/chat/history` | GET | Historial de chat |
-| `/chat/history` | DELETE | Limpiar historial |
-
----
-
-## Datasets de Ejemplo
+Agruta datos en `k` clusters por similitud.
 
 ```
-data/
-  pyme_sales.csv              -> Para regresion lineal (ventas por tiempo)
-  ventas_semanales.csv        -> Para regresion lineal
-  clientes_churn.csv          -> Para regresion logistica (churn binario)
-  segmentacion_clientes.csv   -> Para K-Means (clusters)
-  precio_optimo.csv           -> Para optimizacion de precios
-  sales_sample.csv            -> Datos de ventas simple (52 semanas)
-  generate_datasets.py        -> Generador de datasets sinteticos
+c(i) = argmin_j ||x(i) - mu_j||^2                    Asignacion al cluster mas cercano
+mu_j = (1/|C_j|) * sum_{i in C_j} x(i)               Actualizacion del centroide
+J = sum ||x(i) - mu_c(i)||^2                          Funcion de costo (inercia)
 ```
 
----
-
-## Como Usar
-
-1. **Subir datos**: Ir a Datos -> Seleccionar CSV -> se guarda automaticamente
-2. **Entrenar modelo**: Ir a Funcion Grafica
-   - Seleccionar dataset, modelo, columnas X/Y
-   - Configurar alpha e iteraciones
-   - Click "Entrenar modelo"
-   - Usar Play/Pausa/Paso + slider de velocidad
-   - Ver formulas LaTeX con valores en tiempo real
-3. **Ver resultados**: Ir a Resultados
-   - Metricas en lenguaje simple: tendencia, prediccion, confianza
-   - Grafico de prediccion futura (linea punteada)
-   - Chat con IA local para preguntas sobre los resultados
-4. **Configurar**: Ir a Configuracion
-   - Parametros de entrenamiento, apariencia, proveedor IA
+**Concepto clave (limites):** Cuando el numero de iteraciones `n -> inf`, las asignaciones y centroides dejan de cambiar. El algoritmo **converge** a un punto fijo.
 
 ---
 
-## Asistente IA Local
+### 4. Red Neuronal -- Regla de la Cadena (Backpropagation)
 
-BizSense soporta dos proveedores de IA local:
+Aprende patrones complejos mediante una capa oculta.
 
-| Proveedor | Puerto | Deteccion | Modelos recomendados |
-|-----------|--------|-----------|---------------------|
-| **Ollama** | 11434 | Automatica | qwen2.5:0.5b, qwen2.5:1.5b, tinyllama:1.1b |
-| **LM Studio** | 1234 | Automatica | qwen2.5-coder-14b, gemma-4-12b, phi-3 |
+```
+Forward:
+  z(1) = W(1) * x + b(1)         a(1) = g(z(1))      Capa oculta
+  z(2) = W(2) * a(1) + b(2)      a(2) = g(z(2))      Salida
 
-- Se detecta automaticamente al abrir la pagina Resultados
-- Usa el modelo activo de LM Studio o el configurado en Ollama
-- El chat es streaming (token a token)
-- El historial es persistente en SQLite
-- System prompt con contexto de los resultados reales del modelo entrenado
+Backpropagation (regla de la cadena):
+  delta(2) = a(2) - y                                  Error en salida
+  delta(1) = (W(2))^T * delta(2) .* g'(z(1))          Propagacion hacia atras
+  dJ/dW(2) = delta(2) * (a(1))^T                       Gradiente capa 2
+  dJ/dW(1) = delta(1) * x^T                             Gradiente capa 1
+```
+
+**Concepto clave:** La regla de la cadena permite descomponer la derivada del error total en las derivadas de cada capa, propagando el error desde la salida hacia la entrada.
 
 ---
 
-## Development
+## Arquitectura Hexagonal
 
-```bash
-# Backend logs
-tail -f /tmp/bizsense-backend.log
+BizSense sigue el patron de **Puertos y Adaptadores** (arquitectura hexagonal), que separa la logica de negocio de los detalles tecnicos.
 
-# Electron devtools
-npm start -- --dev
+```
+                    CAPA INTERNA
+                 (logica pura, sin dependencias)
+                +-----------------------+
+                |       Domain          |
+                |  - Modelos ML (4)     |
+                |  - Entidades          |
+                |  - Calculo puro       |
+                +-----------+-----------+
+                            |
+                +-----------+-----------+
+                |     Application       |
+                |  - 13 casos de uso    |
+                |  - Puertos (interfaces)|
+                +-----------+-----------+
+                            |
+            +---------------+---------------+
+            |                               |
+   CAPA EXTERNA                      CAPA EXTERNA
+  (adaptadores entrada)           (adaptadores salida)
+  +----------------+              +----------------+
+  |   FastAPI      |              |   SQLite       |
+  |   17 endpoints |              |   Persistencia |
+  +----------------+              +----------------+
+  +----------------+              +----------------+
+  |   Electron     |              |   Ollama       |
+  |   UI Desktop   |              |   LM Studio    |
+  +----------------+              +----------------+
+```
 
-# Inspeccionar BD
-sqlite3 data/bizsense.db
-SELECT * FROM datasets;
-SELECT * FROM trainings;
+**Principio:** Las dependencias apuntan hacia adentro. El dominio (calculo matematico) no sabe nada de FastAPI, SQLite, ni Electron. Los adaptadores implementan las interfaces que el dominio define.
+
+### Puertos (interfaces abstractas)
+
+| Puerto | Operaciones |
+|--------|-------------|
+| `DatasetRepository` | guardar, obtener, listar, eliminar datasets |
+| `TrainingRepository` | guardar, obtener, listar, ultimo entrenamiento |
+| `ConfigRepository` | leer, actualizar configuracion |
+| `AIProvider` | verificar disponibilidad, chat, listar modelos, iniciar |
+
+### Adaptadores (implementaciones)
+
+| Adaptador | Implementa | Tecnologia |
+|-----------|-----------|------------|
+| `FastAPIAdapter` | Endpoints HTTP | FastAPI |
+| `SQLiteAdapter` | Repositorios | sqlite3 (stdlib) |
+| `OllamaAdapter` | AIProvider | Ollama API (puerto 11434) |
+| `LMStudioAdapter` | AIProvider | LM Studio API (puerto 1234) |
+
+---
+
+## Flujo de Uso
+
+```
+1. Datos         Subir CSV (se guarda en SQLite + disco)
+      |
+2. Funcion       Seleccionar dataset + modelo + parametros
+   Grafica       Click "Entrenar"
+      |          Ver animacion paso a paso:
+      |          - Grafico del modelo ajustandose
+      |          - Funcion de costo decreciendo
+      |          - Formulas con valores en cada iteracion
+      |          Controles: Play / Pausa / Paso adelante / Paso atras
+      |
+3. Resultados    Metricas en lenguaje simple:
+      |          - "Tus ventas suben ~$200 por semana"
+      |          - "Prediccion proxima semana: $25,400"
+      |          - "Confianza del modelo: alta"
+      |          Grafico de prediccion futura
+      |          Chat con IA local para preguntas
+      |
+4. Dashboard     Resumen global: datasets, entrenamientos, acceso rapido
 ```
 
 ---
 
-## Troubleshooting
+## Estructura del Proyecto
 
-| Problema | Solucion |
-|----------|----------|
-| Backend no responde | `python -m ml.main` (verificar errores) |
-| Falta modulo Python | `pip install -r requirements.txt` |
-| Electron no abre | `npm install && npm start` |
-| IA no disponible | Abrir LM Studio con un modelo cargado, o iniciar `ollama serve` |
-| Puerto 5000 ocupado | `fuser -k 5000/tcp` |
+```
+BizSense/
+├── app/                         Frontend (Electron)
+│   ├── main.js                  Inicia backend + ventana
+│   └── renderer/
+│       ├── index.html           Dashboard
+│       ├── models.html          Catalogo de modelos
+│       ├── graphics.html        Entrenamiento animado
+│       ├── results.html         Resultados + chat IA
+│       ├── data.html            Gestion de datasets
+│       ├── config.html          Configuracion
+│       ├── style.css            Tema oscuro
+│       └── js/                  Logica por pagina
+│
+├── ml/                          Backend (Python)
+│   ├── domain/                  Capa interna
+│   │   ├── models.py            Entidades
+│   │   └── services.py          4 algoritmos ML
+│   ├── application/             Capa media
+│   │   ├── use_cases.py         13 casos de uso
+│   │   └── ports/               4 interfaces
+│   └── infrastructure/          Capa externa
+│       ├── api/                 FastAPI (17 endpoints)
+│       ├── storage/             SQLite
+│       └── ai/                  Ollama + LM Studio
+│
+├── data/                        Datos
+│   ├── bizsense.db              SQLite
+│   ├── datasets/                CSVs subidos
+│   └── *.csv                    Datasets de ejemplo
+│
+└── start.sh                     Script de inicio
+```
 
 ---
 
 ## Tech Stack
 
-- **Frontend:** Electron, HTML/CSS/JS Vanilla, Chart.js, MathJax
-- **Backend:** FastAPI, Python 3.8+, Uvicorn
-- **ML:** NumPy, Pandas (calculos puros, sin scikit-learn)
-- **IA Local:** Ollama, LM Studio (auto-deteccion)
-- **Database:** SQLite (stdlib)
-- **Pattern:** Arquitectura Hexagonal (Puertos y Adaptadores)
-- **Auth:** Ninguna (aplicacion local de escritorio)
+| Capa | Tecnologia |
+|------|-----------|
+| Frontend | Electron + HTML/CSS/JS + Chart.js + MathJax |
+| Backend | FastAPI + Uvicorn |
+| ML | NumPy + Pandas (algoritmos propios, sin scikit-learn) |
+| IA | Ollama + LM Studio (auto-deteccion) |
+| Storage | SQLite (stdlib) |
+| Arquitectura | Hexagonal (Puertos y Adaptadores) |
+
+---
+
+## Ejecucion
+
+```bash
+./start.sh
+```
+
+Requisitos: Python 3.8+, Node.js 18+
 
 ---
 

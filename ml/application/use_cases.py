@@ -313,7 +313,7 @@ INSTRUCCIONES:
         if self.chat_repo:
             from datetime import datetime
             now = datetime.now().isoformat(timespec='seconds')
-            for msg in messages[-2:]:
+            for msg in messages:
                 self.chat_repo.save(ChatMessage(
                     role=msg["role"],
                     content=msg["content"],
