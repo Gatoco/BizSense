@@ -23,39 +23,19 @@ echo "Instalando dependencias Node..."
 npm install --silent
 
 echo ""
-echo "Iniciando backend (FastAPI)..."
-.venv/bin/python -m ml.main > /tmp/bizsense-backend.log 2>&1 &
-BACKEND_PID=$!
-
-echo "Esperando a que el backend este listo..."
-for i in {1..10}; do
-    if curl -s http://localhost:5000/docs > /dev/null 2>&1; then
-        echo "Backend listo en http://localhost:5000"
-        break
-    fi
-    if [ $i -eq 10 ]; then
-        echo "Error: Backend no respondio despues de 10 intentos"
-        echo "Logs del backend:"
-        cat /tmp/bizsense-backend.log
-        exit 1
-    fi
-    sleep 1
-done
-
-echo ""
-echo "Iniciando aplicacion Electron..."
+echo "Iniciando aplicacion Electron (backend se inicia automaticamente)..."
 echo ""
 echo "==================================================="
-echo "  BizSense esta corriendo"
+echo "  BizSense"
 echo "  Backend: http://localhost:5000"
-echo "  Logs: /tmp/bizsense-backend.log"
+echo "  Logs backend: /tmp/bizsense-backend.log"
+echo "  Logs electron: /tmp/bizsense-electron.log"
 echo "==================================================="
 echo ""
 
-npm start
+# Electron main.js se encarga de iniciar y detener el backend
+# Fontconfig warnings se redirigen al log de electron
+npm start 2>/tmp/bizsense-electron.log
 
 echo ""
-echo "Deteniendo backend..."
-kill $BACKEND_PID 2>/dev/null || true
-
 echo "BizSense cerrado"

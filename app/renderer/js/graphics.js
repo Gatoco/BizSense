@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('pause-btn').addEventListener('click', stopAnimation);
     document.getElementById('reset-btn').addEventListener('click', reset);
     document.getElementById('step-btn').addEventListener('click', stepForward);
+    document.getElementById('step-back-btn').addEventListener('click', stepBackward);
     document.getElementById('speed-slider').addEventListener('input', changeSpeed);
 });
 
@@ -306,6 +307,15 @@ function stepForward() {
         if (currentStep === history.length - 1) {
             showResults();
         }
+    }
+}
+
+function stepBackward() {
+    stopAnimation();
+    if (currentStep > 0) {
+        currentStep--;
+        document.getElementById('results').classList.add('hidden');
+        renderStep(currentStep);
     }
 }
 
