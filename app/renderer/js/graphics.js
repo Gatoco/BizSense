@@ -365,12 +365,18 @@ function renderNeuralStep(step) {
 }
 
 function formulaBlock(label, generalLatex, computedLatex) {
+    const generalParts = generalLatex.split(/\\\\?\[?\d*pt\]?/).filter(s => s.trim());
+    const computedParts = computedLatex.split(/\\\\?\[?\d*pt\]?/).filter(s => s.trim());
+
+    const generalHtml = generalParts.map(p => `\\( ${p.trim()} \\)`).join('<br>');
+    const computedHtml = computedParts.map(p => `\\( ${p.trim()} \\)`).join('<br>');
+
     return `
         <div class="formula-row">
             <strong>${label}</strong>
-            <div class="formula-general">\\( ${generalLatex} \\)</div>
+            <div class="formula-general">${generalHtml}</div>
             <div class="formula-separator"></div>
-            <div class="formula-computed">\\( ${computedLatex} \\)</div>
+            <div class="formula-computed">${computedHtml}</div>
         </div>
     `;
 }
