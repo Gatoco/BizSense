@@ -153,8 +153,7 @@ def kmeans(
     X: List[float],
     y: List[float],
     k: int = 3,
-    iterations: int = 100,
-    alpha: float = 0.01
+    iterations: int = 100
 ) -> Tuple[List[float], List[IterationStep], float, float]:
     """
     K-Means clustering.
@@ -335,4 +334,11 @@ def neural_network(
 
     final_predictions = (sigmoid(W2 @ sigmoid(W1 @ X_norm.reshape(1, -1) + b1) + b2) * y_std + y_mean).flatten()
 
-    return [float(final_predictions.mean()), float(final_predictions.std())], history, float(x_mean), float(x_std)
+    theta = (
+        W1.flatten().tolist()
+        + b1.flatten().tolist()
+        + W2.flatten().tolist()
+        + b2.flatten().tolist()
+    )
+
+    return theta, history, float(x_mean), float(x_std)

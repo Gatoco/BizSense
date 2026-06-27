@@ -196,10 +196,8 @@ async def list_trainings():
 
 @app.get("/trainings/{training_id}")
 async def get_training(training_id: int):
-    from ml.infrastructure.storage.sqlite_adapter import SQLiteTrainingRepository
-    repo = SQLiteTrainingRepository()
     try:
-        t = repo.get_by_id(training_id)
+        t = training_repo.get_by_id(training_id)
         return {
             'id': t.id,
             'dataset_id': t.dataset_id,
@@ -236,7 +234,8 @@ async def update_config(params: dict):
 async def predict(params: dict):
     predictions = predict_use_case.execute(
         x_values=params['x_values'],
-        theta=params['theta']
+        theta=params['theta'],
+        model_type=params.get('model_type', 'linear_regression')
     )
     return {'predictions': predictions}
 

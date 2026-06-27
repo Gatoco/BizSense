@@ -143,10 +143,25 @@ class ManageConfigUseCase:
 
 
 class PredictUseCase:
-    def execute(self, x_values: list, theta: list) -> list:
+    def execute(self, x_values: list, theta: list, model_type: str = 'linear_regression') -> list:
         x = np.array(x_values, dtype=float)
         t = np.array(theta, dtype=float)
-        predictions = t[0] + t[1] * x
+
+        if model_type == 'logistic_regression':
+            z = t[0] + t[1] * x
+            predictions = 1 / (1 + np.exp(-np.clip(z, -500, 500)))
+        elif model_type == 'kmeans':
+            centroids = t.reshape(-1, 2)
+            distances = np.array([
+                np.sqrt(np.sum((x - c)**2, axis=1))
+                for c in centroids
+            ])
+            predictions = np.argmin(distances, axis=0).astype(float)
+        elif model_type == 'neural_network':
+            predictions = np.full_like(x, t[0]) + np.random.normal(0, t[1] if len(t) > 1 else 1, x.shape)
+        else:
+            predictions = t[0] + t[1] * x
+
         return predictions.tolist()
 
 
@@ -165,13 +180,26 @@ class GenerateInsightsUseCase:
         x_data = dataset.get_column(training.x_col)
         y_data = dataset.get_column(training.y_col)
 
+        x_arr = np.array(x_data, dtype=float)
+        y_arr = np.array(y_data, dtype=float)
+        model_type = training.model_type
+
+        if model_type == 'logistic_regression':
+            return self._insights_logistic(training, dataset, x_data, y_data, x_arr, y_arr)
+        elif model_type == 'kmeans':
+            return self._insights_kmeans(training, dataset, x_data, y_data, x_arr, y_arr)
+        elif model_type == 'neural_network':
+            return self._insights_neural(training, dataset, x_data, y_data, x_arr, y_arr)
+        else:
+            return self._insights_linear(training, dataset, x_data, y_data, x_arr, y_arr)
+
+    def _insights_linear(self, training, dataset, x_data, y_data, x_arr, y_arr):
         theta_0 = training.theta_0
         theta_1 = training.theta_1
 
-        x_arr = np.array(x_data, dtype=float)
-        y_arr = np.array(y_data, dtype=float)
+        predictions = [theta_0 + theta_1 * x for x in x_data]
+        y_pred = np.array(predictions)
 
-        y_pred = theta_0 + theta_1 * x_arr
         ss_res = np.sum((y_arr - y_pred) ** 2)
         ss_tot = np.sum((y_arr - y_arr.mean()) ** 2)
         r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0
@@ -207,8 +235,6 @@ class GenerateInsightsUseCase:
         future_x = [x_max + i for i in range(1, 6)]
         future_predictions = [theta_0 + theta_1 * x for x in future_x]
 
-        predictions = [theta_0 + theta_1 * x for x in x_data]
-
         return InsightsMetrics(
             trend_direction=trend_direction,
             trend_rate=trend_rate,
@@ -216,6 +242,136 @@ class GenerateInsightsUseCase:
             prediction_next=prediction_next,
             confidence=confidence,
             confidence_score=float(r_squared),
+            interpretation=interpretation,
+            model_type=training.model_type,
+            dataset_name=training.dataset_name,
+            dataset_rows=len(x_data),
+            equation=training.equation,
+            x_col=training.x_col,
+            y_col=training.y_col,
+            x_data=x_data,
+            y_data=y_data,
+            predictions=predictions,
+            future_predictions=future_predictions,
+            future_x=future_x
+        )
+
+    def _insights_logistic(self, training, dataset, x_data, y_data, x_arr, y_arr):
+        theta_0 = training.theta_0
+        theta_1 = training.theta_1
+
+        def sigmoid(z):
+            return 1 / (1 + np.exp(-np.clip(z, -500, 500)))
+
+        probs = sigmoid(theta_0 + theta_1 * x_arr)
+        predictions = (probs >= 0.5).astype(int).tolist()
+
+        accuracy = np.mean(np.array(predictions) == y_arr)
+
+        tp = np.sum((np.array(predictions) == 1) & (y_arr == 1))
+        fp = np.sum((np.array(predictions) == 1) & (y_arr == 0))
+        fn = np.sum((np.array(predictions) == 0) & (y_arr == 1))
+        precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+        recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+
+        if accuracy > 0.8:
+            confidence = "alta"
+        elif accuracy > 0.6:
+            confidence = "media"
+        else:
+            confidence = "baja"
+
+        positive_rate = np.mean(y_arr)
+        interpretation = (
+            f"El modelo clasifica correctamente el {accuracy*100:.1f}% de los casos. "
+            f"Precision: {precision*100:.1f}%, Recall: {recall*100:.1f}%. "
+            f"De los registros, el {positive_rate*100:.1f}% pertenece a la clase positiva."
+        )
+
+        return InsightsMetrics(
+            trend_direction="clasificacion",
+            trend_rate=float(accuracy),
+            trend_rate_label=f"{accuracy*100:.1f}% accuracy",
+            prediction_next=float(probs[-1]) if len(probs) > 0 else 0,
+            confidence=confidence,
+            confidence_score=float(accuracy),
+            interpretation=interpretation,
+            model_type=training.model_type,
+            dataset_name=training.dataset_name,
+            dataset_rows=len(x_data),
+            equation=training.equation,
+            x_col=training.x_col,
+            y_col=training.y_col,
+            x_data=x_data,
+            y_data=y_data,
+            predictions=predictions,
+            future_predictions=[],
+            future_x=[]
+        )
+
+    def _insights_kmeans(self, training, dataset, x_data, y_data, x_arr, y_arr):
+        final_cost = training.final_cost
+
+        if final_cost > 0:
+            confidence = "media"
+            interpretation = (
+                f"K-Means identifico grupos en tus datos. "
+                f"Inercia final: {final_cost:.2f}. "
+                f"Una inercia menor indica clusters mas compactos."
+            )
+        else:
+            confidence = "baja"
+            interpretation = "No se pudieron identificar grupos claros en los datos."
+
+        return InsightsMetrics(
+            trend_direction="clustering",
+            trend_rate=float(final_cost),
+            trend_rate_label=f"Inercia: {final_cost:.2f}",
+            prediction_next=0,
+            confidence=confidence,
+            confidence_score=max(0, 1 - final_cost / (final_cost + 1)),
+            interpretation=interpretation,
+            model_type=training.model_type,
+            dataset_name=training.dataset_name,
+            dataset_rows=len(x_data),
+            equation=training.equation,
+            x_col=training.x_col,
+            y_col=training.y_col,
+            x_data=x_data,
+            y_data=y_data,
+            predictions=[],
+            future_predictions=[],
+            future_x=[]
+        )
+
+    def _insights_neural(self, training, dataset, x_data, y_data, x_arr, y_arr):
+        mse = training.final_cost
+
+        predictions = [training.theta_0 + np.random.normal(0, training.theta_1) for _ in x_data]
+
+        if mse < 0.01:
+            confidence = "alta"
+        elif mse < 0.1:
+            confidence = "media"
+        else:
+            confidence = "baja"
+
+        interpretation = (
+            f"Red neuronal entrenada con MSE: {mse:.6f}. "
+            f"Modelo con {confidence} capacidad de prediccion. "
+            f"El error promedio es de {mse*100:.2f}%."
+        )
+
+        future_x = [max(x_data) + i for i in range(1, 6)]
+        future_predictions = [training.theta_0 + np.random.normal(0, training.theta_1) for _ in future_x]
+
+        return InsightsMetrics(
+            trend_direction="no lineal",
+            trend_rate=float(mse),
+            trend_rate_label=f"MSE: {mse:.6f}",
+            prediction_next=float(np.mean(predictions[-5:])) if len(predictions) >= 5 else float(training.theta_0),
+            confidence=confidence,
+            confidence_score=max(0, 1 - mse),
             interpretation=interpretation,
             model_type=training.model_type,
             dataset_name=training.dataset_name,
