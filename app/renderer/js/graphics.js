@@ -365,8 +365,8 @@ function renderNeuralStep(step) {
 }
 
 function formulaBlock(label, generalLatex, computedLatex) {
-    const generalParts = generalLatex.split(/\\\\?\[?\d*pt\]?/).filter(s => s.trim());
-    const computedParts = computedLatex.split(/\\\\?\[?\d*pt\]?/).filter(s => s.trim());
+    const generalParts = generalLatex.split('{{LINE}}').filter(s => s.trim());
+    const computedParts = computedLatex.split('{{LINE}}').filter(s => s.trim());
 
     const generalHtml = generalParts.map(p => `\\( ${p.trim()} \\)`).join('<br>');
     const computedHtml = computedParts.map(p => `\\( ${p.trim()} \\)`).join('<br>');
@@ -412,12 +412,12 @@ function updateFormulas(step) {
             ${formulaBlock(
                 'Derivadas parciales (gradiente)',
                 '\\frac{\\partial J}{\\partial \\theta_0} = \\frac{1}{m} \\sum_{i=1}^{m}(h(x_i) - y_i), \\quad \\frac{\\partial J}{\\partial \\theta_1} = \\frac{1}{m} \\sum_{i=1}^{m}(h(x_i) - y_i) \\cdot x_i',
-                `\\frac{\\partial J}{\\partial \\theta_0} = \\frac{1}{${m}} \\sum_{i=1}^{${m}}(h(x_i) - y_i) = ${g0.toFixed(6)} \\\\[4pt] \\frac{\\partial J}{\\partial \\theta_1} = \\frac{1}{${m}} \\sum_{i=1}^{${m}}(h(x_i) - y_i) \\cdot x_i = ${g1.toFixed(6)}`
+                `\\frac{\\partial J}{\\partial \\theta_0} = \\frac{1}{${m}} \\sum_{i=1}^{${m}}(h(x_i) - y_i) = ${g0.toFixed(6)} {{LINE}} \\frac{\\partial J}{\\partial \\theta_1} = \\frac{1}{${m}} \\sum_{i=1}^{${m}}(h(x_i) - y_i) \\cdot x_i = ${g1.toFixed(6)}`
             )}
             ${formulaBlock(
                 'Actualizacion de parametros',
                 '\\theta_j := \\theta_j - \\alpha \\cdot \\frac{\\partial J}{\\partial \\theta_j}',
-                `\\theta_0 := ${t0_old.toFixed(4)} - ${a} \\cdot ${g0.toFixed(6)} = ${t0.toFixed(4)} \\\\[4pt] \\theta_1 := ${t1_old.toFixed(4)} - ${a} \\cdot ${g1.toFixed(6)} = ${t1.toFixed(4)}`
+                `\\theta_0 := ${t0_old.toFixed(4)} - ${a} \\cdot ${g0.toFixed(6)} = ${t0.toFixed(4)} {{LINE}} \\theta_1 := ${t1_old.toFixed(4)} - ${a} \\cdot ${g1.toFixed(6)} = ${t1.toFixed(4)}`
             )}
         `;
     } else if (currentModel === 'logistic_regression') {
@@ -448,12 +448,12 @@ function updateFormulas(step) {
             ${formulaBlock(
                 'Derivadas',
                 '\\frac{\\partial J}{\\partial \\theta_0} = \\frac{1}{m} \\sum(h(x_i) - y_i), \\quad \\frac{\\partial J}{\\partial \\theta_1} = \\frac{1}{m} \\sum(h(x_i) - y_i) \\cdot x_i',
-                `\\frac{\\partial J}{\\partial \\theta_0} = \\frac{1}{${m}} \\sum_{i=1}^{${m}}(h(x_i) - y_i) = ${g0.toFixed(6)} \\\\[4pt] \\frac{\\partial J}{\\partial \\theta_1} = \\frac{1}{${m}} \\sum_{i=1}^{${m}}(h(x_i) - y_i) \\cdot x_i = ${g1.toFixed(6)}`
+                `\\frac{\\partial J}{\\partial \\theta_0} = \\frac{1}{${m}} \\sum_{i=1}^{${m}}(h(x_i) - y_i) = ${g0.toFixed(6)} {{LINE}} \\frac{\\partial J}{\\partial \\theta_1} = \\frac{1}{${m}} \\sum_{i=1}^{${m}}(h(x_i) - y_i) \\cdot x_i = ${g1.toFixed(6)}`
             )}
             ${formulaBlock(
                 'Actualizacion de parametros',
                 '\\theta_j := \\theta_j - \\alpha \\cdot \\frac{\\partial J}{\\partial \\theta_j}',
-                `\\theta_0 := ${t0_old.toFixed(4)} - ${a} \\cdot ${g0.toFixed(6)} = ${t0.toFixed(4)} \\\\[4pt] \\theta_1 := ${t1_old.toFixed(4)} - ${a} \\cdot ${g1.toFixed(6)} = ${t1.toFixed(4)}`
+                `\\theta_0 := ${t0_old.toFixed(4)} - ${a} \\cdot ${g0.toFixed(6)} = ${t0.toFixed(4)} {{LINE}} \\theta_1 := ${t1_old.toFixed(4)} - ${a} \\cdot ${g1.toFixed(6)} = ${t1.toFixed(4)}`
             )}
             <div class="formula-row">
                 <strong>Limites de la sigmoide</strong>
@@ -479,7 +479,7 @@ function updateFormulas(step) {
             ${formulaBlock(
                 'Actualizacion de centroides',
                 '\\mu_j = \\frac{1}{|C_j|} \\sum_{i \\in C_j} x^{(i)}',
-                `${centroidsStr} \\\\[4pt] |C_j| = [${clusterCounts}]`
+                `${centroidsStr} {{LINE}} |C_j| = [${clusterCounts}]`
             )}
             <div class="formula-row">
                 <strong>Limite (convergencia)</strong>
@@ -498,13 +498,13 @@ function updateFormulas(step) {
         html = `
             ${formulaBlock(
                 'Forward propagation',
-                'z^{(1)} = W^{(1)} x + b^{(1)}, \\quad a^{(1)} = g(z^{(1)}) \\\\[6pt] z^{(2)} = W^{(2)} a^{(1)} + b^{(2)}, \\quad a^{(2)} = g(z^{(2)})',
-                `b^{(2)} = ${b2.toFixed(4)}, \\quad W^{(2)}_0 = ${w2_0.toFixed(4)} \\\\[6pt] \\|W\\| = ${weightsNorm.toFixed(4)}`
+                'z^{(1)} = W^{(1)} x + b^{(1)}, \\quad a^{(1)} = g(z^{(1)}) {{LINE}} z^{(2)} = W^{(2)} a^{(1)} + b^{(2)}, \\quad a^{(2)} = g(z^{(2)})',
+                `b^{(2)} = ${b2.toFixed(4)}, \\quad W^{(2)}_0 = ${w2_0.toFixed(4)} {{LINE}} \\|W\\| = ${weightsNorm.toFixed(4)}`
             )}
             ${formulaBlock(
                 'Backpropagation (regla de la cadena)',
                 '\\delta^{(2)} = a^{(2)} - y, \\quad \\delta^{(1)} = (W^{(2)})^T \\delta^{(2)} \\cdot g\'(z^{(1)})',
-                `\\delta^{(2)} = a^{(2)} - y \\\\[4pt] \\delta^{(1)} = (W^{(2)})^T \\delta^{(2)} \\cdot g\'(z^{(1)}), \\quad \\|\\delta^{(1)}\\| = ${d1norm.toFixed(6)}`
+                `\\delta^{(2)} = a^{(2)} - y {{LINE}} \\delta^{(1)} = (W^{(2)})^T \\delta^{(2)} \\cdot g\'(z^{(1)}), \\quad \\|\\delta^{(1)}\\| = ${d1norm.toFixed(6)}`
             )}
             ${formulaBlock(
                 'Funcion de costo (MSE)',
@@ -514,7 +514,7 @@ function updateFormulas(step) {
             ${formulaBlock(
                 'Gradientes (regla de la cadena)',
                 '\\frac{\\partial J}{\\partial W^{(2)}} = \\delta^{(2)} (a^{(1)})^T, \\quad \\frac{\\partial J}{\\partial W^{(1)}} = \\delta^{(1)} x^T',
-                `\\frac{\\partial J}{\\partial W^{(2)}} = \\delta^{(2)} (a^{(1)})^T \\\\[4pt] \\frac{\\partial J}{\\partial W^{(1)}} = \\delta^{(1)} x^T \\\\[4pt] \\text{magnitud del gradiente} = ${gradMag.toFixed(6)}`
+                `\\frac{\\partial J}{\\partial W^{(2)}} = \\delta^{(2)} (a^{(1)})^T {{LINE}} \\frac{\\partial J}{\\partial W^{(1)}} = \\delta^{(1)} x^T {{LINE}} \\text{magnitud del gradiente} = ${gradMag.toFixed(6)}`
             )}
         `;
     }
@@ -523,8 +523,12 @@ function updateFormulas(step) {
 
     clearTimeout(mathJaxTimer);
     mathJaxTimer = setTimeout(() => {
-        if (window.MathJax && window.MathJax.typeset) {
-            MathJax.typeset();
+        if (!window.MathJax) return;
+        const el = document.getElementById('formulas');
+        if (MathJax.typesetPromise) {
+            MathJax.typesetPromise([el]).catch(e => console.error('MathJax:', e));
+        } else if (MathJax.typeset) {
+            try { MathJax.typeset([el]); } catch (e) { console.error('MathJax:', e); }
         }
     }, 150);
 }
