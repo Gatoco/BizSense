@@ -1,7 +1,10 @@
+import os
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from dataclasses import asdict
+
+DATASETS_DIR = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'data', 'datasets')
 
 from ml.application.use_cases import (
     UploadDataUseCase, ListDatasetsUseCase, GetDatasetUseCase, DeleteDatasetUseCase,
@@ -99,7 +102,6 @@ async def upload_dataset(file: UploadFile = File(...)):
     ds = upload_use_case.execute(filename, file.file)
 
     import pandas as pd
-    from ml.infrastructure.storage.sqlite_adapter import DATASETS_DIR
     filepath = os.path.join(DATASETS_DIR, ds.filename)
     df = pd.read_csv(filepath)
     preview = df.head(10).to_dict(orient='records')
@@ -120,8 +122,6 @@ async def get_dataset(dataset_id: int, load_data: bool = False):
         ds = get_dataset_use_case.execute(dataset_id, load_data=load_data)
 
         import pandas as pd
-        from ml.infrastructure.storage.sqlite_adapter import DATASETS_DIR
-        import os
         filepath = os.path.join(DATASETS_DIR, ds.filename)
         df = pd.read_csv(filepath)
         preview = df.head(10).to_dict(orient='records')

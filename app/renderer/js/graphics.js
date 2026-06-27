@@ -6,6 +6,7 @@ let yData = [];
 let currentStep = 0;
 let isPlaying = false;
 let animationTimer = null;
+let mathJaxTimer = null;
 let regressionChart = null;
 let costChart = null;
 let currentModel = 'linear_regression';
@@ -457,9 +458,12 @@ function updateFormulas(step) {
 
     document.getElementById('formulas').innerHTML = html;
 
-    if (window.MathJax && window.MathJax.typeset) {
-        MathJax.typeset();
-    }
+    clearTimeout(mathJaxTimer);
+    mathJaxTimer = setTimeout(() => {
+        if (window.MathJax && window.MathJax.typeset) {
+            MathJax.typeset();
+        }
+    }, 150);
 }
 
 function animateStep() {

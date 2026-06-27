@@ -2,6 +2,7 @@ import sqlite3
 import os
 import json
 import pandas as pd
+from contextlib import contextmanager
 from ml.domain.models import Dataset, Training, AppConfig, ChatMessage
 from ml.application.ports.dataset_repository import DatasetRepository
 from ml.application.ports.training_repository import TrainingRepository
@@ -18,8 +19,14 @@ class SQLiteDatasetRepository(DatasetRepository):
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         os.makedirs(DATASETS_DIR, exist_ok=True)
 
+    @contextmanager
     def _conn(self):
-        return sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path)
+        conn.execute('PRAGMA foreign_keys = ON')
+        try:
+            yield conn
+        finally:
+            conn.close()
 
     def save(self, dataset: Dataset) -> int:
         filepath = os.path.join(DATASETS_DIR, dataset.filename)
@@ -70,20 +77,27 @@ class SQLiteDatasetRepository(DatasetRepository):
     def delete(self, dataset_id: int) -> None:
         ds = self.get_by_id(dataset_id)
         filepath = os.path.join(DATASETS_DIR, ds.filename)
-        if os.path.exists(filepath):
-            os.remove(filepath)
 
         with self._conn() as conn:
             conn.execute('DELETE FROM datasets WHERE id = ?', (dataset_id,))
             conn.commit()
+
+        if os.path.exists(filepath):
+            os.remove(filepath)
 
 
 class SQLiteTrainingRepository(TrainingRepository):
     def __init__(self, db_path: str = None):
         self.db_path = db_path or DB_PATH
 
+    @contextmanager
     def _conn(self):
-        return sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path)
+        conn.execute('PRAGMA foreign_keys = ON')
+        try:
+            yield conn
+        finally:
+            conn.close()
 
     def save(self, training: Training) -> int:
         with self._conn() as conn:
@@ -165,8 +179,14 @@ class SQLiteConfigRepository(ConfigRepository):
     def __init__(self, db_path: str = None):
         self.db_path = db_path or DB_PATH
 
+    @contextmanager
     def _conn(self):
-        return sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path)
+        conn.execute('PRAGMA foreign_keys = ON')
+        try:
+            yield conn
+        finally:
+            conn.close()
 
     def get_all(self) -> AppConfig:
         config_dict = dict(self.DEFAULTS)
@@ -193,6 +213,7 @@ def init_db(db_path: str = None):
     db_path = db_path or DB_PATH
     os.makedirs(os.path.dirname(db_path), exist_ok=True)
     with sqlite3.connect(db_path) as conn:
+        conn.execute('PRAGMA foreign_keys = ON')
         conn.execute('''
             CREATE TABLE IF NOT EXISTS datasets (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -217,7 +238,8 @@ def init_db(db_path: str = None):
                 theta_1 REAL NOT NULL,
                 final_cost REAL NOT NULL,
                 equation TEXT NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (dataset_id) REFERENCES datasets(id)
             )
         ''')
         conn.execute('''
@@ -235,6 +257,7 @@ def init_db(db_path: str = None):
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+        conn.execute('CREATE INDEX IF NOT EXISTS idx_trainings_dataset_id ON trainings(dataset_id)')
         conn.commit()
 
 
@@ -242,8 +265,14 @@ class SQLiteChatRepository:
     def __init__(self, db_path: str = None):
         self.db_path = db_path or DB_PATH
 
+    @contextmanager
     def _conn(self):
-        return sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path)
+        conn.execute('PRAGMA foreign_keys = ON')
+        try:
+            yield conn
+        finally:
+            conn.close()
 
     def save(self, msg: ChatMessage) -> int:
         with self._conn() as conn:
