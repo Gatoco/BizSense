@@ -10,6 +10,8 @@ let mathJaxTimer = null;
 let regressionChart = null;
 let costChart = null;
 let currentModel = 'linear_regression';
+let currentAlpha = 0.01;
+let currentK = 3;
 
 const CLUSTER_COLORS = [
     'rgba(220, 220, 220, 0.8)',
@@ -130,8 +132,11 @@ async function train() {
             model_type: currentModel
         };
 
+        currentAlpha = body.alpha;
+
         if (currentModel === 'kmeans') {
             body.k = parseInt(document.getElementById('k-clusters').value);
+            currentK = body.k;
         }
 
         const res = await fetch(`${API}/train`, {
@@ -374,62 +379,79 @@ function updateFormulas(step) {
     document.getElementById('iteration-info').textContent =
         `Iteracion ${step.iteration} de ${history.length}`;
 
+    const m = xData.length;
+    const a = currentAlpha;
     let html = '';
 
     if (currentModel === 'linear_regression') {
-        const t0 = step.theta_0_real.toFixed(4);
-        const t1 = step.theta_1_real.toFixed(4);
-        const sign = step.theta_1_real >= 0 ? '+' : '-';
+        const t0 = step.theta_0_real;
+        const t1 = step.theta_1_real;
+        const g0 = step.gradient_0;
+        const g1 = step.gradient_1;
+        const t0_old = t0 + a * g0;
+        const t1_old = t1 + a * g1;
+        const sgn1 = t1 >= 0 ? '+' : '-';
+        const sgn1o = t1_old >= 0 ? '+' : '-';
         html = `
             ${formulaBlock(
                 'Hipotesis',
                 'h(x) = \\theta_0 + \\theta_1 \\cdot x',
-                `h(x) = ${t0} ${sign} ${Math.abs(step.theta_1_real).toFixed(4)} \\cdot x`
+                `h(x) = ${t0.toFixed(4)} ${sgn1} ${Math.abs(t1).toFixed(4)} \\cdot x`
             )}
             ${formulaBlock(
-                'Funcion de costo',
+                'Funcion de costo (MSE)',
                 'J(\\theta) = \\frac{1}{2m} \\sum_{i=1}^{m}(h(x_i) - y_i)^2',
-                `J(\\theta) = ${step.cost.toFixed(4)}`
+                `J(\\theta) = \\frac{1}{2 \\cdot ${m}} \\sum_{i=1}^{${m}}(h(x_i) - y_i)^2 = ${step.cost.toFixed(4)}`
             )}
             ${formulaBlock(
                 'Derivadas parciales (gradiente)',
                 '\\frac{\\partial J}{\\partial \\theta_0} = \\frac{1}{m} \\sum_{i=1}^{m}(h(x_i) - y_i), \\quad \\frac{\\partial J}{\\partial \\theta_1} = \\frac{1}{m} \\sum_{i=1}^{m}(h(x_i) - y_i) \\cdot x_i',
-                `\\frac{\\partial J}{\\partial \\theta_0} = ${step.gradient_0.toFixed(6)}, \\quad \\frac{\\partial J}{\\partial \\theta_1} = ${step.gradient_1.toFixed(6)}`
+                `\\frac{\\partial J}{\\partial \\theta_0} = \\frac{1}{${m}} \\sum_{i=1}^{${m}}(h(x_i) - y_i) = ${g0.toFixed(6)} \\\\[4pt] \\frac{\\partial J}{\\partial \\theta_1} = \\frac{1}{${m}} \\sum_{i=1}^{${m}}(h(x_i) - y_i) \\cdot x_i = ${g1.toFixed(6)}`
             )}
             ${formulaBlock(
                 'Actualizacion de parametros',
                 '\\theta_j := \\theta_j - \\alpha \\cdot \\frac{\\partial J}{\\partial \\theta_j}',
-                `\\theta_0 = ${t0}, \\quad \\theta_1 = ${t1}`
+                `\\theta_0 := ${t0_old.toFixed(4)} - ${a} \\cdot ${g0.toFixed(6)} = ${t0.toFixed(4)} \\\\[4pt] \\theta_1 := ${t1_old.toFixed(4)} - ${a} \\cdot ${g1.toFixed(6)} = ${t1.toFixed(4)}`
             )}
         `;
     } else if (currentModel === 'logistic_regression') {
-        const t0 = step.theta_0_real.toFixed(4);
-        const t1 = step.theta_1_real.toFixed(4);
-        const sign = step.theta_1_real >= 0 ? '+' : '-';
+        const t0 = step.theta_0_real;
+        const t1 = step.theta_1_real;
+        const g0 = step.gradient_0;
+        const g1 = step.gradient_1;
+        const t0_old = t0 + a * g0;
+        const t1_old = t1 + a * g1;
+        const sgn = t1 >= 0 ? '+' : '-';
+        const sgnOld = t1_old >= 0 ? '+' : '-';
         html = `
             ${formulaBlock(
                 'Funcion sigmoide',
                 'g(z) = \\frac{1}{1 + e^{-z}}',
-                `z = ${t0} ${sign} ${Math.abs(step.theta_1_real).toFixed(4)} \\cdot x`
+                `g(z) = \\frac{1}{1 + e^{-z}}, \\quad z = ${t0.toFixed(4)} ${sgn} ${Math.abs(t1).toFixed(4)} \\cdot x`
             )}
             ${formulaBlock(
                 'Hipotesis',
                 'h(x) = g(\\theta_0 + \\theta_1 x) = \\frac{1}{1 + e^{-(\\theta_0 + \\theta_1 x)}}',
-                `h(x) = \\frac{1}{1 + e^{-(${t0} ${sign} ${Math.abs(step.theta_1_real).toFixed(4)} x)}}`
+                `h(x) = \\frac{1}{1 + e^{-(${t0.toFixed(4)} ${sgn} ${Math.abs(t1).toFixed(4)} \\cdot x)}}`
             )}
             ${formulaBlock(
                 'Funcion de costo (cross-entropy)',
                 'J(\\theta) = -\\frac{1}{m} \\sum_{i=1}^{m}[y_i \\log(h(x_i)) + (1-y_i) \\log(1-h(x_i))]',
-                `J(\\theta) = ${step.cost.toFixed(4)}`
+                `J(\\theta) = -\\frac{1}{${m}} \\sum_{i=1}^{${m}}[y_i \\log(h(x_i)) + (1-y_i) \\log(1-h(x_i))] = ${step.cost.toFixed(4)}`
             )}
             ${formulaBlock(
                 'Derivadas',
                 '\\frac{\\partial J}{\\partial \\theta_0} = \\frac{1}{m} \\sum(h(x_i) - y_i), \\quad \\frac{\\partial J}{\\partial \\theta_1} = \\frac{1}{m} \\sum(h(x_i) - y_i) \\cdot x_i',
-                `\\frac{\\partial J}{\\partial \\theta_0} = ${step.gradient_0.toFixed(6)}, \\quad \\frac{\\partial J}{\\partial \\theta_1} = ${step.gradient_1.toFixed(6)}`
+                `\\frac{\\partial J}{\\partial \\theta_0} = \\frac{1}{${m}} \\sum_{i=1}^{${m}}(h(x_i) - y_i) = ${g0.toFixed(6)} \\\\[4pt] \\frac{\\partial J}{\\partial \\theta_1} = \\frac{1}{${m}} \\sum_{i=1}^{${m}}(h(x_i) - y_i) \\cdot x_i = ${g1.toFixed(6)}`
+            )}
+            ${formulaBlock(
+                'Actualizacion de parametros',
+                '\\theta_j := \\theta_j - \\alpha \\cdot \\frac{\\partial J}{\\partial \\theta_j}',
+                `\\theta_0 := ${t0_old.toFixed(4)} - ${a} \\cdot ${g0.toFixed(6)} = ${t0.toFixed(4)} \\\\[4pt] \\theta_1 := ${t1_old.toFixed(4)} - ${a} \\cdot ${g1.toFixed(6)} = ${t1.toFixed(4)}`
             )}
             <div class="formula-row">
                 <strong>Limites de la sigmoide</strong>
-                <div class="formula-general">\\( g(z) \\to 1 \\) cuando \\( z \\to +\\infty \\), \\( g(z) \\to 0 \\) cuando \\( z \\to -\\infty \\)</div>
+                <div class="formula-general">\\( g(z) \\to 1 \\) cuando \\( z \\to +\\infty \\), \\quad g(z) \\to 0 \\) cuando \\( z \\to -\\infty \\)</div>
             </div>
         `;
     } else if (currentModel === 'kmeans') {
@@ -437,17 +459,21 @@ function updateFormulas(step) {
         const inertia = extra.inertia || step.gradient_0;
         const converged = extra.converged;
         const centroids = extra.centroids || [];
-        const centroidsStr = centroids.map(c => `(${c[0].toFixed(2)}, ${c[1].toFixed(2)})`).join(',\\ ');
+        const assignments = extra.assignments || [];
+        const counts = {};
+        assignments.forEach(c => { counts[c] = (counts[c] || 0) + 1; });
+        const clusterCounts = Object.values(counts).join(',\\ ');
+        const centroidsStr = centroids.map((c, j) => `\\mu_{${j}} = (${c[0].toFixed(2)}, ${c[1].toFixed(2)})`).join(',\\ ');
         html = `
             ${formulaBlock(
-                'Asignacion',
+                'Asignacion al cluster mas cercano',
                 'c^{(i)} = \\arg\\min_j \\|x^{(i)} - \\mu_j\\|^2',
-                `J = \\sum_{i=1}^{m} \\|x^{(i)} - \\mu_{c^{(i)}}\\|^2 = ${inertia.toFixed(4)}`
+                `J = \\sum_{i=1}^{${m}} \\|x^{(i)} - \\mu_{c^{(i)}}\\|^2 = ${inertia.toFixed(4)}`
             )}
             ${formulaBlock(
                 'Actualizacion de centroides',
                 '\\mu_j = \\frac{1}{|C_j|} \\sum_{i \\in C_j} x^{(i)}',
-                `\\mu = [${centroidsStr}]`
+                `${centroidsStr} \\\\[4pt] |C_j| = [${clusterCounts}]`
             )}
             <div class="formula-row">
                 <strong>Limite (convergencia)</strong>
@@ -459,26 +485,30 @@ function updateFormulas(step) {
     } else if (currentModel === 'neural_network') {
         const extra = step.extra || {};
         const weightsNorm = extra.weights_norm || 0;
+        const b2 = step.theta_0;
+        const w2_0 = step.theta_1;
+        const gradMag = step.gradient_0;
+        const d1norm = step.gradient_1;
         html = `
             ${formulaBlock(
                 'Forward propagation',
                 'z^{(1)} = W^{(1)} x + b^{(1)}, \\quad a^{(1)} = g(z^{(1)}) \\\\[6pt] z^{(2)} = W^{(2)} a^{(1)} + b^{(2)}, \\quad a^{(2)} = g(z^{(2)})',
-                `b^{(2)} = ${step.theta_0.toFixed(4)}, \\quad W^{(2)}_0 = ${step.theta_1.toFixed(4)} \\\\[6pt] \\|W\\| = ${weightsNorm.toFixed(4)}`
+                `b^{(2)} = ${b2.toFixed(4)}, \\quad W^{(2)}_0 = ${w2_0.toFixed(4)} \\\\[6pt] \\|W\\| = ${weightsNorm.toFixed(4)}`
             )}
             ${formulaBlock(
                 'Backpropagation (regla de la cadena)',
                 '\\delta^{(2)} = a^{(2)} - y, \\quad \\delta^{(1)} = (W^{(2)})^T \\delta^{(2)} \\cdot g\'(z^{(1)})',
-                `\\|\\delta^{(1)}\\| = ${step.gradient_1.toFixed(6)}`
+                `\\delta^{(2)} = a^{(2)} - y \\\\[4pt] \\delta^{(1)} = (W^{(2)})^T \\delta^{(2)} \\cdot g\'(z^{(1)}), \\quad \\|\\delta^{(1)}\\| = ${d1norm.toFixed(6)}`
             )}
             ${formulaBlock(
                 'Funcion de costo (MSE)',
                 'J = \\frac{1}{2m} \\sum_{i=1}^{m}(a^{(2)}_i - y_i)^2',
-                `J = ${step.cost.toFixed(6)}`
+                `J = \\frac{1}{2 \\cdot ${m}} \\sum_{i=1}^{${m}}(a^{(2)}_i - y_i)^2 = ${step.cost.toFixed(6)}`
             )}
             ${formulaBlock(
                 'Gradientes (regla de la cadena)',
                 '\\frac{\\partial J}{\\partial W^{(2)}} = \\delta^{(2)} (a^{(1)})^T, \\quad \\frac{\\partial J}{\\partial W^{(1)}} = \\delta^{(1)} x^T',
-                `\\text{magnitud del gradiente} = ${step.gradient_0.toFixed(6)}`
+                `\\frac{\\partial J}{\\partial W^{(2)}} = \\delta^{(2)} (a^{(1)})^T \\\\[4pt] \\frac{\\partial J}{\\partial W^{(1)}} = \\delta^{(1)} x^T \\\\[4pt] \\text{magnitud del gradiente} = ${gradMag.toFixed(6)}`
             )}
         `;
     }
