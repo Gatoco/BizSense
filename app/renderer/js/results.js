@@ -23,8 +23,38 @@ async function loadInsights() {
         updateTrendMetrics(data);
         updateInterpretation(data);
         renderChart(data);
+        loadAIAnalysis();
     } catch (err) {
         console.error('Error loading insights:', err);
+    }
+}
+
+async function loadAIAnalysis() {
+    const loading = document.getElementById('ai-analysis-loading');
+    const errorEl = document.getElementById('ai-analysis-error');
+    const content = document.getElementById('ai-analysis-content');
+
+    try {
+        const res = await fetch(`${API}/ai/analyze`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+        });
+
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || 'Error');
+        }
+
+        const data = await res.json();
+
+        loading.classList.add('hidden');
+        content.classList.remove('hidden');
+        content.textContent = data.analysis;
+    } catch (err) {
+        loading.classList.add('hidden');
+        errorEl.classList.remove('hidden');
+        errorEl.textContent = `IA no disponible: ${err.message}. Inicia Ollama/LM Studio y recarga.`;
     }
 }
 

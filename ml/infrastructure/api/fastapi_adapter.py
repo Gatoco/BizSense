@@ -385,6 +385,45 @@ async def ai_start():
     }
 
 
+@app.post("/ai/analyze")
+async def ai_analyze(params: dict = None):
+    params = params or {}
+    config = manage_config_use_case.get()
+    provider_name = config.ai_provider
+
+    if provider_name == "auto":
+        provider = detect_provider_use_case.get_auto()
+    else:
+        provider = detect_provider_use_case.get_provider(provider_name)
+
+    if not provider or not provider.is_available():
+        raise HTTPException(status_code=503, detail="No AI provider available. Start Ollama or LM Studio.")
+
+    insights_result = insights_use_case.execute()
+    if not insights_result:
+        raise HTTPException(status_code=400, detail="No training data available. Train a model first.")
+
+    model = params.get('model')
+    if not model:
+        models = provider.list_models()
+        if config.ai_model in models:
+            model = config.ai_model
+        elif models:
+            model = models[0]
+        else:
+            model = config.ai_model
+
+    chat_use_case = ChatUseCase(provider, chat_repo)
+    prompt = params.get('prompt', 'Analiza estos resultados y dame recomendaciones de negocio en 3 puntos clave.')
+    messages = [{'role': 'user', 'content': prompt}]
+
+    try:
+        response = chat_use_case.execute(messages=messages, model=model, insights=insights_result)
+        return {'analysis': response, 'model': model}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/ai/chat")
 async def ai_chat(params: dict):
     config = manage_config_use_case.get()
