@@ -25,6 +25,8 @@ class TrainingResult:
     y_data: List[float]
     x_mean: float
     x_std: float
+    test_cost: float = 0.0
+    test_accuracy: float = 0.0
 
 
 @dataclass
@@ -62,6 +64,8 @@ class Training:
     equation: str = ""
     created_at: Optional[str] = None
     history: Optional[List[IterationStep]] = None
+    test_cost: float = 0.0
+    test_accuracy: float = 0.0
 
 
 @dataclass

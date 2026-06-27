@@ -12,16 +12,16 @@ let costChart = null;
 let currentModel = 'linear_regression';
 
 const CLUSTER_COLORS = [
-    'rgba(0, 212, 255, 0.7)',
-    'rgba(231, 76, 60, 0.7)',
-    'rgba(39, 174, 96, 0.7)',
-    'rgba(243, 156, 18, 0.7)',
-    'rgba(155, 89, 182, 0.7)',
-    'rgba(52, 152, 219, 0.7)',
-    'rgba(230, 126, 34, 0.7)',
-    'rgba(26, 188, 156, 0.7)',
-    'rgba(236, 240, 241, 0.7)',
-    'rgba(149, 165, 166, 0.7)'
+    'rgba(220, 220, 220, 0.8)',
+    'rgba(160, 160, 160, 0.8)',
+    'rgba(190, 190, 190, 0.8)',
+    'rgba(130, 130, 130, 0.8)',
+    'rgba(200, 200, 200, 0.8)',
+    'rgba(110, 110, 110, 0.8)',
+    'rgba(170, 170, 170, 0.8)',
+    'rgba(90, 90, 90, 0.8)',
+    'rgba(210, 210, 210, 0.8)',
+    'rgba(140, 140, 140, 0.8)'
 ];
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -165,8 +165,8 @@ function initCharts() {
 
     const xColName = document.getElementById('x-col').value;
     const yColName = document.getElementById('y-col').value;
-    const chartTextColor = '#a1a1aa';
-    const chartGridColor = '#2d2d44';
+    const chartTextColor = '#808080';
+    const chartGridColor = '#3a3a3a';
 
     const baseOptions = {
         responsive: true,
@@ -204,8 +204,8 @@ function initCharts() {
         datasets.push({
             label: 'Centroides',
             data: [],
-            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-            borderColor: '#ffffff',
+            backgroundColor: 'rgba(255, 255, 255, 0.85)',
+            borderColor: '#e0e0e0',
             pointRadius: 10,
             pointStyle: 'crossRot',
             borderWidth: 2
@@ -226,15 +226,15 @@ function initCharts() {
                     {
                         label: 'Datos',
                         data: scatterData,
-                        backgroundColor: 'rgba(0, 212, 255, 0.5)',
-                        borderColor: '#00d4ff',
+                        backgroundColor: 'rgba(200, 200, 200, 0.5)',
+                        borderColor: '#b0b0b0',
                         pointRadius: 4
                     },
                     {
                         label: 'Modelo',
                         data: [],
                         type: 'line',
-                        borderColor: '#e74c3c',
+                        borderColor: '#a04040',
                         borderWidth: 3,
                         pointRadius: 0,
                         fill: false
@@ -255,8 +255,8 @@ function initCharts() {
             datasets: [{
                 label: costLabel,
                 data: [],
-                borderColor: '#27ae60',
-                backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                borderColor: '#909090',
+                backgroundColor: 'rgba(144, 144, 144, 0.1)',
                 borderWidth: 2,
                 fill: true,
                 pointRadius: 2
@@ -359,6 +359,17 @@ function renderNeuralStep(step) {
     regressionChart.update();
 }
 
+function formulaBlock(label, generalLatex, computedLatex) {
+    return `
+        <div class="formula-row">
+            <strong>${label}</strong>
+            <div class="formula-general">\\( ${generalLatex} \\)</div>
+            <div class="formula-separator"></div>
+            <div class="formula-computed">\\( ${computedLatex} \\)</div>
+        </div>
+    `;
+}
+
 function updateFormulas(step) {
     document.getElementById('iteration-info').textContent =
         `Iteracion ${step.iteration} de ${history.length}`;
@@ -366,93 +377,109 @@ function updateFormulas(step) {
     let html = '';
 
     if (currentModel === 'linear_regression') {
+        const t0 = step.theta_0_real.toFixed(4);
+        const t1 = step.theta_1_real.toFixed(4);
+        const sign = step.theta_1_real >= 0 ? '+' : '-';
         html = `
-            <div class="formula-row">
-                <strong>Hipotesis:</strong>
-                \\( h(x) = ${step.theta_0_real.toFixed(4)} + ${step.theta_1_real.toFixed(4)} \\cdot x \\)
-            </div>
-            <div class="formula-row">
-                <strong>Funcion de costo:</strong>
-                \\( J(\\theta) = \\frac{1}{2m} \\sum_{i=1}^{m}(h(x_i) - y_i)^2 = ${step.cost.toFixed(4)} \\)
-            </div>
-            <div class="formula-row">
-                <strong>Derivadas parciales (gradiente):</strong>
-                \\( \\frac{\\partial J}{\\partial \\theta_0} = \\frac{1}{m} \\sum_{i=1}^{m}(h(x_i) - y_i) = ${step.gradient_0.toFixed(6)} \\)<br>
-                \\( \\frac{\\partial J}{\\partial \\theta_1} = \\frac{1}{m} \\sum_{i=1}^{m}(h(x_i) - y_i) \\cdot x_i = ${step.gradient_1.toFixed(6)} \\)
-            </div>
-            <div class="formula-row">
-                <strong>Actualizacion de parametros:</strong>
-                \\( \\theta_0 := \\theta_0 - \\alpha \\cdot \\frac{\\partial J}{\\partial \\theta_0} = ${step.theta_0_real.toFixed(4)} \\)<br>
-                \\( \\theta_1 := \\theta_1 - \\alpha \\cdot \\frac{\\partial J}{\\partial \\theta_1} = ${step.theta_1_real.toFixed(4)} \\)
-            </div>
+            ${formulaBlock(
+                'Hipotesis',
+                'h(x) = \\theta_0 + \\theta_1 \\cdot x',
+                `h(x) = ${t0} ${sign} ${Math.abs(step.theta_1_real).toFixed(4)} \\cdot x`
+            )}
+            ${formulaBlock(
+                'Funcion de costo',
+                'J(\\theta) = \\frac{1}{2m} \\sum_{i=1}^{m}(h(x_i) - y_i)^2',
+                `J(\\theta) = ${step.cost.toFixed(4)}`
+            )}
+            ${formulaBlock(
+                'Derivadas parciales (gradiente)',
+                '\\frac{\\partial J}{\\partial \\theta_0} = \\frac{1}{m} \\sum_{i=1}^{m}(h(x_i) - y_i), \\quad \\frac{\\partial J}{\\partial \\theta_1} = \\frac{1}{m} \\sum_{i=1}^{m}(h(x_i) - y_i) \\cdot x_i',
+                `\\frac{\\partial J}{\\partial \\theta_0} = ${step.gradient_0.toFixed(6)}, \\quad \\frac{\\partial J}{\\partial \\theta_1} = ${step.gradient_1.toFixed(6)}`
+            )}
+            ${formulaBlock(
+                'Actualizacion de parametros',
+                '\\theta_j := \\theta_j - \\alpha \\cdot \\frac{\\partial J}{\\partial \\theta_j}',
+                `\\theta_0 = ${t0}, \\quad \\theta_1 = ${t1}`
+            )}
         `;
     } else if (currentModel === 'logistic_regression') {
+        const t0 = step.theta_0_real.toFixed(4);
+        const t1 = step.theta_1_real.toFixed(4);
+        const sign = step.theta_1_real >= 0 ? '+' : '-';
         html = `
+            ${formulaBlock(
+                'Funcion sigmoide',
+                'g(z) = \\frac{1}{1 + e^{-z}}',
+                `z = ${t0} ${sign} ${Math.abs(step.theta_1_real).toFixed(4)} \\cdot x`
+            )}
+            ${formulaBlock(
+                'Hipotesis',
+                'h(x) = g(\\theta_0 + \\theta_1 x) = \\frac{1}{1 + e^{-(\\theta_0 + \\theta_1 x)}}',
+                `h(x) = \\frac{1}{1 + e^{-(${t0} ${sign} ${Math.abs(step.theta_1_real).toFixed(4)} x)}}`
+            )}
+            ${formulaBlock(
+                'Funcion de costo (cross-entropy)',
+                'J(\\theta) = -\\frac{1}{m} \\sum_{i=1}^{m}[y_i \\log(h(x_i)) + (1-y_i) \\log(1-h(x_i))]',
+                `J(\\theta) = ${step.cost.toFixed(4)}`
+            )}
+            ${formulaBlock(
+                'Derivadas',
+                '\\frac{\\partial J}{\\partial \\theta_0} = \\frac{1}{m} \\sum(h(x_i) - y_i), \\quad \\frac{\\partial J}{\\partial \\theta_1} = \\frac{1}{m} \\sum(h(x_i) - y_i) \\cdot x_i',
+                `\\frac{\\partial J}{\\partial \\theta_0} = ${step.gradient_0.toFixed(6)}, \\quad \\frac{\\partial J}{\\partial \\theta_1} = ${step.gradient_1.toFixed(6)}`
+            )}
             <div class="formula-row">
-                <strong>Funcion sigmoide:</strong>
-                \\( g(z) = \\frac{1}{1 + e^{-z}} \\), donde \\( z = ${step.theta_0_real.toFixed(4)} + ${step.theta_1_real.toFixed(4)} \\cdot x \\)
-            </div>
-            <div class="formula-row">
-                <strong>Hipotesis:</strong>
-                \\( h(x) = g(z) = \\frac{1}{1 + e^{-(${step.theta_0_real.toFixed(4)} + ${step.theta_1_real.toFixed(4)} x)}} \\)
-            </div>
-            <div class="formula-row">
-                <strong>Funcion de costo (cross-entropy):</strong>
-                \\( J(\\theta) = -\\frac{1}{m} \\sum_{i=1}^{m}[y_i \\log(h(x_i)) + (1-y_i) \\log(1-h(x_i))] = ${step.cost.toFixed(4)} \\)
-            </div>
-            <div class="formula-row">
-                <strong>Derivadas (limite: \\( g(z) \\to 1 \\) cuando \\( z \\to +\\infty \\), \\( g(z) \\to 0 \\) cuando \\( z \\to -\\infty \\)):</strong>
-                \\( \\frac{\\partial J}{\\partial \\theta_0} = \\frac{1}{m} \\sum(h(x_i) - y_i) = ${step.gradient_0.toFixed(6)} \\)<br>
-                \\( \\frac{\\partial J}{\\partial \\theta_1} = \\frac{1}{m} \\sum(h(x_i) - y_i) \\cdot x_i = ${step.gradient_1.toFixed(6)} \\)
+                <strong>Limites de la sigmoide</strong>
+                <div class="formula-general">\\( g(z) \\to 1 \\) cuando \\( z \\to +\\infty \\), \\( g(z) \\to 0 \\) cuando \\( z \\to -\\infty \\)</div>
             </div>
         `;
     } else if (currentModel === 'kmeans') {
         const extra = step.extra || {};
         const inertia = extra.inertia || step.gradient_0;
         const converged = extra.converged;
+        const centroids = extra.centroids || [];
+        const centroidsStr = centroids.map(c => `(${c[0].toFixed(2)}, ${c[1].toFixed(2)})`).join(',\\ ');
         html = `
+            ${formulaBlock(
+                'Asignacion',
+                'c^{(i)} = \\arg\\min_j \\|x^{(i)} - \\mu_j\\|^2',
+                `J = \\sum_{i=1}^{m} \\|x^{(i)} - \\mu_{c^{(i)}}\\|^2 = ${inertia.toFixed(4)}`
+            )}
+            ${formulaBlock(
+                'Actualizacion de centroides',
+                '\\mu_j = \\frac{1}{|C_j|} \\sum_{i \\in C_j} x^{(i)}',
+                `\\mu = [${centroidsStr}]`
+            )}
             <div class="formula-row">
-                <strong>Asignacion:</strong>
-                \\( c^{(i)} = \\arg\\min_j ||x^{(i)} - \\mu_j||^2 \\)
-            </div>
-            <div class="formula-row">
-                <strong>Actualizacion de centroides:</strong>
-                \\( \\mu_j = \\frac{1}{|C_j|} \\sum_{i \\in C_j} x^{(i)} \\)
-            </div>
-            <div class="formula-row">
-                <strong>Funcion de costo (inercia):</strong>
-                \\( J = \\sum_{i=1}^{m} ||x^{(i)} - \\mu_{c^{(i)}}||^2 = ${inertia.toFixed(4)} \\)
-            </div>
-            <div class="formula-row">
-                <strong>Limite (convergencia):</strong>
-                Cuando \\( n \\to \\infty \\), las asignaciones no cambian.
-                ${converged ? '<span class="text-primary">Convergio en esta iteracion.</span>' : 'Aun iterando...'}
+                <strong>Limite (convergencia)</strong>
+                <div class="formula-general">\\( n \\to \\infty \\): las asignaciones y centroides dejan de cambiar.</div>
+                <div class="formula-separator"></div>
+                <div class="formula-computed">${converged ? 'Convergio en esta iteracion.' : 'Aun iterando...'}</div>
             </div>
         `;
     } else if (currentModel === 'neural_network') {
         const extra = step.extra || {};
         const weightsNorm = extra.weights_norm || 0;
         html = `
-            <div class="formula-row">
-                <strong>Forward propagation:</strong>
-                \\( z^{(1)} = W^{(1)} x + b^{(1)} \\), \\( a^{(1)} = g(z^{(1)}) \\)<br>
-                \\( z^{(2)} = W^{(2)} a^{(1)} + b^{(2)} \\), \\( a^{(2)} = g(z^{(2)}) \\)
-            </div>
-            <div class="formula-row">
-                <strong>Backpropagation (regla de la cadena):</strong>
-                \\( \\delta^{(2)} = a^{(2)} - y \\)<br>
-                \\( \\delta^{(1)} = (W^{(2)})^T \\delta^{(2)} \\cdot g'(z^{(1)}) \\)
-            </div>
-            <div class="formula-row">
-                <strong>Funcion de costo (MSE):</strong>
-                \\( J = \\frac{1}{2m} \\sum_{i=1}^{m}(a^{(2)}_i - y_i)^2 = ${step.cost.toFixed(6)} \\)
-            </div>
-            <div class="formula-row">
-                <strong>Gradientes (regla de la cadena):</strong>
-                \\( \\frac{\\partial J}{\\partial W^{(2)}} = \\delta^{(2)} (a^{(1)})^T \\)<br>
-                \\( \\frac{\\partial J}{\\partial W^{(1)}} = \\delta^{(1)} x^T \\)<br>
-                Magnitud del gradiente: ${step.gradient_0.toFixed(6)}
-            </div>
+            ${formulaBlock(
+                'Forward propagation',
+                'z^{(1)} = W^{(1)} x + b^{(1)}, \\quad a^{(1)} = g(z^{(1)}) \\\\[6pt] z^{(2)} = W^{(2)} a^{(1)} + b^{(2)}, \\quad a^{(2)} = g(z^{(2)})',
+                `b^{(2)} = ${step.theta_0.toFixed(4)}, \\quad W^{(2)}_0 = ${step.theta_1.toFixed(4)} \\\\[6pt] \\|W\\| = ${weightsNorm.toFixed(4)}`
+            )}
+            ${formulaBlock(
+                'Backpropagation (regla de la cadena)',
+                '\\delta^{(2)} = a^{(2)} - y, \\quad \\delta^{(1)} = (W^{(2)})^T \\delta^{(2)} \\cdot g\'(z^{(1)})',
+                `\\|\\delta^{(1)}\\| = ${step.gradient_1.toFixed(6)}`
+            )}
+            ${formulaBlock(
+                'Funcion de costo (MSE)',
+                'J = \\frac{1}{2m} \\sum_{i=1}^{m}(a^{(2)}_i - y_i)^2',
+                `J = ${step.cost.toFixed(6)}`
+            )}
+            ${formulaBlock(
+                'Gradientes (regla de la cadena)',
+                '\\frac{\\partial J}{\\partial W^{(2)}} = \\delta^{(2)} (a^{(1)})^T, \\quad \\frac{\\partial J}{\\partial W^{(1)}} = \\delta^{(1)} x^T',
+                `\\text{magnitud del gradiente} = ${step.gradient_0.toFixed(6)}`
+            )}
         `;
     }
 

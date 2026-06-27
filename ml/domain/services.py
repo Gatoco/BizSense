@@ -169,7 +169,7 @@ def kmeans(
     points = np.column_stack([np.array(X, dtype=float), np.array(y, dtype=float)])
     m = len(points)
 
-    np.random.seed(42)
+    # ponytail: no seed - caller can set np.random.seed() before for reproducibility
     indices = np.random.choice(m, k, replace=False)
     centroids = points[indices].copy()
 
@@ -184,53 +184,44 @@ def kmeans(
         assignments = np.argmin(distances, axis=0)
 
         cost = np.sum(np.min(distances, axis=0)) / m
+        inertia = float(np.sum(np.min(distances, axis=0)))
+
+        converged = prev_assignments is not None and np.array_equal(assignments, prev_assignments)
+
+        history.append(IterationStep(
+            iteration=i + 1,
+            theta_0=float(centroids[0, 0]) if k > 0 else 0,
+            theta_1=float(centroids[0, 1]) if k > 0 else 0,
+            theta_0_real=float(centroids[0, 0]) if k > 0 else 0,
+            theta_1_real=float(centroids[0, 1]) if k > 0 else 0,
+            cost=float(cost),
+            gradient_0=inertia,
+            gradient_1=float(0),
+            predictions=assignments.astype(float).tolist(),
+            extra={
+                'centroids': centroids.tolist(),
+                'assignments': assignments.tolist(),
+                'k': k,
+                'inertia': inertia,
+                'converged': converged
+            }
+        ))
+
+        if converged:
+            break
+
+        prev_assignments = assignments.copy()
 
         new_centroids = centroids.copy()
         for j in range(k):
             mask = assignments == j
             if np.sum(mask) > 0:
                 new_centroids[j] = np.mean(points[mask], axis=0)
-
-        shifted = np.array([
-            np.sum((points - new_centroids[assignments[p]])**2)
-            for p in range(m)
-        ])
-        inertia = float(np.sum(shifted))
-
-        predictions = np.zeros(m)
-        for p in range(m):
-            predictions[p] = float(assignments[p])
-
-        colors = []
-        for p in range(m):
-            colors.append(float(assignments[p]))
-
-        history.append(IterationStep(
-            iteration=i + 1,
-            theta_0=float(centroids[0, 0]) if k > 0 else 0,
-            theta_1=float(centroids[0, 1]) if k > 0 else 0,
-            theta_0_real=float(new_centroids[0, 0]) if k > 0 else 0,
-            theta_1_real=float(new_centroids[0, 1]) if k > 0 else 0,
-            cost=float(cost),
-            gradient_0=float(inertia),
-            gradient_1=float(0),
-            predictions=colors,
-            extra={
-                'centroids': new_centroids.tolist(),
-                'assignments': assignments.tolist(),
-                'k': k,
-                'inertia': inertia,
-                'converged': bool(prev_assignments is not None and np.array_equal(assignments, prev_assignments))
-            }
-        ))
-
-        if prev_assignments is not None and np.array_equal(assignments, prev_assignments):
-            break
-
-        prev_assignments = assignments.copy()
         centroids = new_centroids
 
-    return [float(centroids[0, 0]), float(centroids[0, 1])], history, 0.0, 1.0
+    # ponytail: return all k centroids flattened so prediction can use them
+    theta = centroids.flatten().tolist()
+    return theta, history, 0.0, 1.0
 
 
 def neural_network(
@@ -274,7 +265,7 @@ def neural_network(
         y_std = 1
     y_norm = (y - y_mean) / y_std
 
-    np.random.seed(42)
+    # ponytail: no seed - caller can set np.random.seed() before for reproducibility
     W1 = np.random.randn(hidden_size, 1) * 0.5
     b1 = np.zeros((hidden_size, 1))
     W2 = np.random.randn(1, hidden_size) * 0.5
@@ -328,7 +319,11 @@ def neural_network(
             extra={
                 'hidden_size': hidden_size,
                 'weights_norm': float(np.sqrt(np.sum(W1**2) + np.sum(W2**2))),
-                'predictions': predictions_real.tolist()
+                'predictions': predictions_real.tolist(),
+                'x_mean': float(x_mean),
+                'x_std': float(x_std),
+                'y_mean': float(y_mean),
+                'y_std': float(y_std)
             }
         ))
 

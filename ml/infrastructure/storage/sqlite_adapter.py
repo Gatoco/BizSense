@@ -104,13 +104,15 @@ class SQLiteTrainingRepository(TrainingRepository):
             cursor = conn.cursor()
             cursor.execute(
                 '''INSERT INTO trainings
-                (dataset_id, dataset_name, model_type, x_col, y_col, alpha, iterations, theta_0, theta_1, final_cost, equation, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                (dataset_id, dataset_name, model_type, x_col, y_col, alpha, iterations, theta_0, theta_1, final_cost, equation, created_at, test_cost, test_accuracy)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                 (
                     training.dataset_id, training.dataset_name, training.model_type,
                     training.x_col, training.y_col, training.alpha, training.iterations,
                     training.theta_0, training.theta_1, training.final_cost,
-                    training.equation, training.created_at
+                    training.equation, training.created_at,
+                    getattr(training, 'test_cost', 0.0),
+                    getattr(training, 'test_accuracy', 0.0)
                 )
             )
             conn.commit()
@@ -119,7 +121,13 @@ class SQLiteTrainingRepository(TrainingRepository):
     def get_by_id(self, training_id: int) -> Training:
         with self._conn() as conn:
             cursor = conn.cursor()
-            cursor.execute('SELECT * FROM trainings WHERE id = ?', (training_id,))
+            cursor.execute(
+                '''SELECT id, dataset_id, dataset_name, model_type, x_col, y_col,
+                          alpha, iterations, theta_0, theta_1, final_cost, equation,
+                          created_at, test_cost, test_accuracy
+                   FROM trainings WHERE id = ?''',
+                (training_id,)
+            )
             row = cursor.fetchone()
 
         if not row:
@@ -129,13 +137,20 @@ class SQLiteTrainingRepository(TrainingRepository):
             id=row[0], dataset_id=row[1], dataset_name=row[2], model_type=row[3],
             x_col=row[4], y_col=row[5], alpha=row[6], iterations=row[7],
             theta_0=row[8], theta_1=row[9], final_cost=row[10],
-            equation=row[11], created_at=row[12]
+            equation=row[11], created_at=row[12],
+            test_cost=row[13] if len(row) > 13 else 0.0,
+            test_accuracy=row[14] if len(row) > 14 else 0.0
         )
 
     def list_all(self) -> list[Training]:
         with self._conn() as conn:
             cursor = conn.cursor()
-            cursor.execute('SELECT * FROM trainings ORDER BY created_at DESC')
+            cursor.execute(
+                '''SELECT id, dataset_id, dataset_name, model_type, x_col, y_col,
+                          alpha, iterations, theta_0, theta_1, final_cost, equation,
+                          created_at, test_cost, test_accuracy
+                   FROM trainings ORDER BY created_at DESC'''
+            )
             rows = cursor.fetchall()
 
         return [
@@ -143,7 +158,9 @@ class SQLiteTrainingRepository(TrainingRepository):
                 id=r[0], dataset_id=r[1], dataset_name=r[2], model_type=r[3],
                 x_col=r[4], y_col=r[5], alpha=r[6], iterations=r[7],
                 theta_0=r[8], theta_1=r[9], final_cost=r[10],
-                equation=r[11], created_at=r[12]
+                equation=r[11], created_at=r[12],
+                test_cost=r[13] if len(r) > 13 else 0.0,
+                test_accuracy=r[14] if len(r) > 14 else 0.0
             )
             for r in rows
         ]
@@ -151,7 +168,12 @@ class SQLiteTrainingRepository(TrainingRepository):
     def get_last(self) -> Training | None:
         with self._conn() as conn:
             cursor = conn.cursor()
-            cursor.execute('SELECT * FROM trainings ORDER BY created_at DESC LIMIT 1')
+            cursor.execute(
+                '''SELECT id, dataset_id, dataset_name, model_type, x_col, y_col,
+                          alpha, iterations, theta_0, theta_1, final_cost, equation,
+                          created_at, test_cost, test_accuracy
+                   FROM trainings ORDER BY created_at DESC LIMIT 1'''
+            )
             row = cursor.fetchone()
 
         if not row:
@@ -161,7 +183,9 @@ class SQLiteTrainingRepository(TrainingRepository):
             id=row[0], dataset_id=row[1], dataset_name=row[2], model_type=row[3],
             x_col=row[4], y_col=row[5], alpha=row[6], iterations=row[7],
             theta_0=row[8], theta_1=row[9], final_cost=row[10],
-            equation=row[11], created_at=row[12]
+            equation=row[11], created_at=row[12],
+            test_cost=row[13] if len(row) > 13 else 0.0,
+            test_accuracy=row[14] if len(row) > 14 else 0.0
         )
 
 
@@ -239,9 +263,20 @@ def init_db(db_path: str = None):
                 final_cost REAL NOT NULL,
                 equation TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                test_cost REAL DEFAULT 0,
+                test_accuracy REAL DEFAULT 0,
                 FOREIGN KEY (dataset_id) REFERENCES datasets(id)
             )
         ''')
+        # ponytail: add new columns to existing table if missing
+        try:
+            conn.execute('ALTER TABLE trainings ADD COLUMN test_cost REAL DEFAULT 0')
+        except sqlite3.OperationalError:
+            pass
+        try:
+            conn.execute('ALTER TABLE trainings ADD COLUMN test_accuracy REAL DEFAULT 0')
+        except sqlite3.OperationalError:
+            pass
         conn.execute('''
             CREATE TABLE IF NOT EXISTS config (
                 key TEXT PRIMARY KEY,

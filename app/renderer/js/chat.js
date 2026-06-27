@@ -112,7 +112,7 @@ function appendMessage(role, content) {
         border-radius: 8px;
         max-width: 85%;
         ${role === 'user'
-            ? 'margin-left: auto; background: rgba(0, 212, 255, 0.15); border-left: 3px solid var(--primary);'
+            ? 'margin-left: auto; background: rgba(176, 176, 176, 0.15); border-left: 3px solid var(--primary);'
             : 'background: var(--surface); border-left: 3px solid var(--muted);'
         }
     `;

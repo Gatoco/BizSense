@@ -48,9 +48,13 @@ class OllamaAdapter(AIProvider):
         req = urllib.request.Request(url, data=payload, method='POST', headers={'Content-Type': 'application/json'})
         resp = urllib.request.urlopen(req, timeout=120)
 
+        # ponytail: read in 1KB chunks instead of byte-by-byte
         full_text = ""
         buffer = ""
-        for chunk in iter(lambda: resp.read(1), b''):
+        while True:
+            chunk = resp.read(1024)
+            if not chunk:
+                break
             buffer += chunk.decode('utf-8', errors='ignore')
             while '\n' in buffer:
                 line, buffer = buffer.split('\n', 1)

@@ -1,15 +1,15 @@
 :root {
-    --bg: #0f0f23;
-    --surface: #1a1a2e;
-    --surface-2: #16213e;
-    --border: #2d2d44;
-    --primary: #00d4ff;
-    --primary-dim: #0099cc;
-    --text: #e4e4e7;
-    --muted: #a1a1aa;
-    --danger: #e74c3c;
-    --success: #27ae60;
-    --warning: #f39c12;
+    --bg: #121212;
+    --surface: #1e1e1e;
+    --surface-2: #2a2a2a;
+    --border: #3a3a3a;
+    --primary: #b0b0b0;
+    --primary-dim: #909090;
+    --text: #d4d4d4;
+    --muted: #808080;
+    --danger: #a04040;
+    --success: #5a7a5a;
+    --warning: #8a7a40;
     --sidebar-width: 240px;
 }
 
@@ -88,7 +88,7 @@ body {
 }
 
 .nav-item.active {
-    background: rgba(0, 212, 255, 0.1);
+    background: rgba(176, 176, 176, 0.1);
     color: var(--primary);
 }
 
@@ -314,17 +314,17 @@ tr:hover td {
 }
 
 .badge-success {
-    background: rgba(39, 174, 96, 0.15);
+    background: rgba(90, 122, 90, 0.15);
     color: var(--success);
 }
 
 .badge-warning {
-    background: rgba(243, 156, 18, 0.15);
+    background: rgba(138, 122, 64, 0.15);
     color: var(--warning);
 }
 
 .badge-info {
-    background: rgba(0, 212, 255, 0.15);
+    background: rgba(176, 176, 176, 0.15);
     color: var(--primary);
 }
 
@@ -438,9 +438,45 @@ input[type="range"]::-webkit-slider-thumb {
     font-size: 0.8rem;
 }
 
+/* Formula dual: general (estatica, estilo libro) + computed (dinamica) */
+.formula-general {
+    color: var(--muted);
+    font-style: italic;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    border-left: 3px solid var(--border);
+}
+
+.formula-computed {
+    color: var(--primary);
+    padding: 10px 12px;
+    background: rgba(176, 176, 176, 0.06);
+    border-radius: 6px;
+    border-left: 3px solid var(--primary);
+    font-weight: 500;
+}
+
+.formula-general strong,
+.formula-computed strong {
+    color: var(--text);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-style: normal;
+}
+
+.formula-separator {
+    height: 1px;
+    background: var(--border);
+    margin: 8px 0;
+    opacity: 0.5;
+}
+
 /* RESULTS */
 .results-panel {
-    background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(0,153,204,0.05));
+    background: linear-gradient(135deg, rgba(176,176,176,0.1), rgba(144,144,144,0.05));
     border: 1px solid var(--primary);
     border-radius: 12px;
     padding: 28px;
@@ -459,7 +495,7 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 .result-card {
-    background: rgba(0, 212, 255, 0.08);
+    background: rgba(176, 176, 176, 0.08);
     border-radius: 8px;
     padding: 20px;
     text-align: center;

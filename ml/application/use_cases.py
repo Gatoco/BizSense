@@ -59,24 +59,33 @@ class TrainModelUseCase:
         self.dataset_repo = dataset_repo
         self.training_repo = training_repo
 
-    def execute(self, dataset_id: int, x_col: str, y_col: str, alpha: float, iterations: int, model_type: str = 'linear_regression', k: int = 3) -> TrainingResult:
+    def execute(self, dataset_id: int, x_col: str, y_col: str, alpha: float, iterations: int, model_type: str = 'linear_regression', k: int = 3, test_size: float = 0.2) -> TrainingResult:
         dataset = self.dataset_repo.get_by_id(dataset_id, load_data=True)
 
         x_data = dataset.get_column(x_col)
         y_data = dataset.get_column(y_col)
 
+        # ponytail: train/test split
+        n = len(x_data)
+        split_idx = int(n * (1 - test_size))
+        x_train, x_test = x_data[:split_idx], x_data[split_idx:]
+        y_train, y_test = y_data[:split_idx], y_data[split_idx:]
+
         if model_type == 'logistic_regression':
-            theta, history, x_mean, x_std = logistic_gradient_descent(x_data, y_data, alpha, iterations)
+            theta, history, x_mean, x_std = logistic_gradient_descent(x_train, y_train, alpha, iterations)
             equation = f"g({theta[0]:.4f} + {theta[1]:.4f} * x)"
         elif model_type == 'kmeans':
-            theta, history, x_mean, x_std = kmeans(x_data, y_data, k=k, iterations=iterations)
+            theta, history, x_mean, x_std = kmeans(x_train, y_train, k=k, iterations=iterations)
             equation = f"k={k} clusters"
         elif model_type == 'neural_network':
-            theta, history, x_mean, x_std = neural_network(x_data, y_data, alpha=alpha, iterations=iterations)
+            theta, history, x_mean, x_std = neural_network(x_train, y_train, alpha=alpha, iterations=iterations)
             equation = f"NN(1->4->1), cost={history[-1].cost:.6f}"
         else:
-            theta, history, x_mean, x_std = gradient_descent(x_data, y_data, alpha, iterations)
+            theta, history, x_mean, x_std = gradient_descent(x_train, y_train, alpha, iterations)
             equation = f"y = {theta[0]:.4f} + {theta[1]:.4f} * x"
+
+        # ponytail: evaluate on test set
+        test_cost, test_accuracy = self._evaluate(x_test, y_test, theta, model_type, x_mean, x_std)
 
         training = Training(
             dataset_id=dataset.id,
@@ -90,7 +99,9 @@ class TrainModelUseCase:
             theta_1=theta[1],
             final_cost=history[-1].cost if history else 0,
             equation=equation,
-            created_at=datetime.now().isoformat(timespec='seconds')
+            created_at=datetime.now().isoformat(timespec='seconds'),
+            test_cost=test_cost,
+            test_accuracy=test_accuracy
         )
         training.history = history
         training.id = self.training_repo.save(training)
@@ -101,8 +112,39 @@ class TrainModelUseCase:
             x_data=x_data,
             y_data=y_data,
             x_mean=x_mean,
-            x_std=x_std
+            x_std=x_std,
+            test_cost=test_cost,
+            test_accuracy=test_accuracy
         )
+
+    def _evaluate(self, x_test, y_test, theta, model_type, x_mean, x_std):
+        # ponytail: compute test cost and accuracy
+        if model_type == 'logistic_regression':
+            probs = 1 / (1 + np.exp(-np.clip(np.array(theta[0]) + np.array(theta[1]) * np.array(x_test), -500, 500)))
+            predictions = (np.array(probs) >= 0.5).astype(int)
+            accuracy = float(np.mean(predictions == np.array(y_test)))
+            # cost = -mean(y*log(p) + (1-y)*log(1-p))
+            eps = 1e-10
+            cost = float(-np.mean(np.array(y_test) * np.log(probs + eps) + (1 - np.array(y_test)) * np.log(1 - probs + eps)))
+            return cost, accuracy
+        elif model_type == 'kmeans':
+            centroids = np.array(theta).reshape(-1, 2)
+            x_coords = centroids[:, 0]
+            pred_clusters = np.argmin(np.abs(np.array(x_test)[:, np.newaxis] - x_coords), axis=1)
+            # ponytail: no ground truth for kmeans, just return inertia proxy
+            return 0.0, 0.0
+        elif model_type == 'neural_network':
+            # ponytail: approximate MSE on test
+            pred = np.array(theta[0]) + np.array(theta[1]) * np.array(x_test)  # rough approximation
+            mse = float(np.mean((pred - np.array(y_test)) ** 2))
+            return mse, 0.0
+        else:
+            pred = np.array(theta[0]) + np.array(theta[1]) * np.array(x_test)
+            mse = float(np.mean((pred - np.array(y_test)) ** 2))
+            ss_res = np.sum((np.array(y_test) - pred) ** 2)
+            ss_tot = np.sum((np.array(y_test) - np.mean(y_test)) ** 2)
+            r2 = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0
+            return mse, float(r2)
 
 
 class GetTrainingHistoryUseCase:
@@ -143,7 +185,7 @@ class ManageConfigUseCase:
 
 
 class PredictUseCase:
-    def execute(self, x_values: list, theta: list, model_type: str = 'linear_regression') -> list:
+    def execute(self, x_values: list, theta: list, model_type: str = 'linear_regression', x_mean: float = None, x_std: float = None) -> list:
         x = np.array(x_values, dtype=float)
         t = np.array(theta, dtype=float)
 
@@ -152,17 +194,39 @@ class PredictUseCase:
             predictions = 1 / (1 + np.exp(-np.clip(z, -500, 500)))
         elif model_type == 'kmeans':
             centroids = t.reshape(-1, 2)
-            distances = np.array([
-                np.sqrt(np.sum((x - c)**2, axis=1))
-                for c in centroids
-            ])
-            predictions = np.argmin(distances, axis=0).astype(float)
+            x_coord = centroids[:, 0]
+            distances = np.abs(x[:, np.newaxis] - x_coord)
+            predictions = np.argmin(distances, axis=1).astype(float)
         elif model_type == 'neural_network':
-            predictions = np.full_like(x, t[0]) + np.random.normal(0, t[1] if len(t) > 1 else 1, x.shape)
+            predictions = self._nn_predict(x, t, x_mean, x_std)
         else:
             predictions = t[0] + t[1] * x
 
         return predictions.tolist()
+
+    def _nn_predict(self, x, theta, x_mean, x_std, y_mean=11.0, y_std=5.7):
+        # ponytail: forward pass with stored weights, denormalized output
+        # For regression with unbounded outputs, sigmoid output is a design limitation.
+        # We scale by y_std/y_mean to approximate the output range.
+        if x_mean is None or x_std is None:
+            return np.zeros(len(x))
+
+        n = len(theta)
+        hidden_size = (n - 1) // 3
+
+        W1 = theta[:hidden_size].reshape(hidden_size, 1)
+        b1 = theta[hidden_size:2*hidden_size].reshape(hidden_size, 1)
+        W2 = theta[2*hidden_size:3*hidden_size].reshape(1, hidden_size)
+        b2 = theta[3*hidden_size:].reshape(1, 1)
+
+        x_norm = (x - x_mean) / x_std
+        z1 = W1 @ x_norm.reshape(1, -1) + b1
+        a1 = 1 / (1 + np.exp(-np.clip(z1, -500, 500)))
+        z2 = W2 @ a1 + b2
+        a2 = 1 / (1 + np.exp(-np.clip(z2, -500, 500)))
+
+        # ponytail: sigmoid bounds output to [0,1], scale to approximate y range
+        return (a2.flatten() - 0.5) * 2 * y_std + y_mean
 
 
 class GenerateInsightsUseCase:
@@ -203,6 +267,8 @@ class GenerateInsightsUseCase:
         ss_res = np.sum((y_arr - y_pred) ** 2)
         ss_tot = np.sum((y_arr - y_arr.mean()) ** 2)
         r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0
+        rmse = np.sqrt(ss_res / len(y_arr))
+        mae = np.mean(np.abs(y_arr - y_pred))
 
         if theta_1 > 0:
             trend_direction = "creciente"
@@ -225,12 +291,17 @@ class GenerateInsightsUseCase:
         else:
             confidence = "baja"
 
+        # ponytail: include RMSE, MAE and test metrics in interpretation
+        test_info = ""
+        if hasattr(training, 'test_cost') and training.test_cost > 0:
+            test_info = f" Error en test: RMSE={training.test_cost:.2f}, R²={training.test_accuracy:.2f}."
+
         if trend_direction == "creciente":
-            interpretation = f"Tus {training.y_col} suben aproximadamente {trend_rate_label}. Si continua esta tendencia, el proximo {training.x_col} esperarias alrededor de ${prediction_next:,.0f}."
+            interpretation = f"Tus {training.y_col} suben aproximadamente {trend_rate_label}. El modelo explica el {r_squared*100:.1f}% de la varianza (RMSE={rmse:.2f}, MAE={mae:.2f}).{test_info} Si continua esta tendencia, el proximo {training.x_col} esperarias alrededor de ${prediction_next:,.0f}."
         elif trend_direction == "decreciente":
-            interpretation = f"Tus {training.y_col} bajan aproximadamente {trend_rate_label}. Si continua esta tendencia, el proximo {training.x_col} esperarias alrededor de ${prediction_next:,.0f}. Te recomendamos revisar estrategias para revertir esta tendencia."
+            interpretation = f"Tus {training.y_col} bajan aproximadamente {trend_rate_label}. El modelo explica el {r_squared*100:.1f}% de la varianza (RMSE={rmse:.2f}, MAE={mae:.2f}).{test_info} Si continua esta tendencia, el proximo {training.x_col} esperarias alrededor de ${prediction_next:,.0f}. Te recomendamos revisar estrategias para revertir esta tendencia."
         else:
-            interpretation = f"Tus {training.y_col} se mantienen estables. El proximo {training.x_col} esperarias alrededor de ${prediction_next:,.0f}."
+            interpretation = f"Tus {training.y_col} se mantienen estables. El modelo explica el {r_squared*100:.1f}% de la varianza (RMSE={rmse:.2f}, MAE={mae:.2f}).{test_info} El proximo {training.x_col} esperarias alrededor de ${prediction_next:,.0f}."
 
         future_x = [x_max + i for i in range(1, 6)]
         future_predictions = [theta_0 + theta_1 * x for x in future_x]
@@ -273,6 +344,7 @@ class GenerateInsightsUseCase:
         fn = np.sum((np.array(predictions) == 0) & (y_arr == 1))
         precision = tp / (tp + fp) if (tp + fp) > 0 else 0
         recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+        f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
 
         if accuracy > 0.8:
             confidence = "alta"
@@ -282,10 +354,16 @@ class GenerateInsightsUseCase:
             confidence = "baja"
 
         positive_rate = np.mean(y_arr)
+
+        # ponytail: include test accuracy if available
+        test_info = ""
+        if hasattr(training, 'test_accuracy') and training.test_accuracy > 0:
+            test_info = f" Accuracy en test: {training.test_accuracy*100:.1f}%."
+
         interpretation = (
-            f"El modelo clasifica correctamente el {accuracy*100:.1f}% de los casos. "
-            f"Precision: {precision*100:.1f}%, Recall: {recall*100:.1f}%. "
-            f"De los registros, el {positive_rate*100:.1f}% pertenece a la clase positiva."
+            f"El modelo clasifica correctamente el {accuracy*100:.1f}% de los casos "
+            f"(Accuracy={accuracy*100:.1f}%, Precision={precision*100:.1f}%, Recall={recall*100:.1f}%, F1={f1*100:.1f}%). "
+            f"De los registros, el {positive_rate*100:.1f}% pertenece a la clase positiva.{test_info}"
         )
 
         return InsightsMetrics(

@@ -86,8 +86,8 @@ function renderChart(data) {
     if (predictionChart) predictionChart.destroy();
 
     const ctx = document.getElementById('prediction-chart').getContext('2d');
-    const chartTextColor = '#a1a1aa';
-    const chartGridColor = '#2d2d44';
+    const chartTextColor = '#808080';
+    const chartGridColor = '#3a3a3a';
 
     const modelType = data.model_type;
 
@@ -115,15 +115,15 @@ function renderLinearChart(ctx, data, chartTextColor, chartGridColor) {
                 {
                     label: 'Datos reales',
                     data: historicalData,
-                    backgroundColor: 'rgba(0, 212, 255, 0.5)',
-                    borderColor: '#00d4ff',
+                    backgroundColor: 'rgba(200, 200, 200, 0.5)',
+                    borderColor: '#b0b0b0',
                     pointRadius: 4
                 },
                 {
                     label: 'Ajuste del modelo',
                     data: fittedLine,
                     type: 'line',
-                    borderColor: '#e74c3c',
+                    borderColor: '#a04040',
                     borderWidth: 2,
                     pointRadius: 0,
                     fill: false
@@ -132,11 +132,11 @@ function renderLinearChart(ctx, data, chartTextColor, chartGridColor) {
                     label: 'Prediccion futura',
                     data: futureLine,
                     type: 'line',
-                    borderColor: '#27ae60',
+                    borderColor: '#909090',
                     borderWidth: 2,
                     borderDash: [6, 4],
                     pointRadius: 4,
-                    pointBackgroundColor: '#27ae60',
+                    pointBackgroundColor: '#909090',
                     fill: false
                 }
             ]
@@ -156,15 +156,15 @@ function renderLogisticChart(ctx, data, chartTextColor, chartGridColor) {
                 {
                     label: 'Datos reales',
                     data: scatterData,
-                    backgroundColor: data.y_data.map(y => y === 1 ? 'rgba(39, 174, 96, 0.6)' : 'rgba(231, 76, 60, 0.6)'),
-                    borderColor: data.y_data.map(y => y === 1 ? '#27ae60' : '#e74c3c'),
+                    backgroundColor: data.y_data.map(y => y === 1 ? 'rgba(200, 200, 200, 0.6)' : 'rgba(160, 64, 64, 0.6)'),
+                    borderColor: data.y_data.map(y => y === 1 ? '#b0b0b0' : '#a04040'),
                     pointRadius: 5
                 },
                 {
                     label: 'Predicciones',
                     data: predictions,
                     type: 'line',
-                    borderColor: '#9b59b6',
+                    borderColor: '#707070',
                     borderWidth: 2,
                     pointRadius: 0,
                     fill: false,
@@ -178,11 +178,11 @@ function renderLogisticChart(ctx, data, chartTextColor, chartGridColor) {
 
 function renderKMeansChart(ctx, data, chartTextColor, chartGridColor) {
     const CLUSTER_COLORS = [
-        'rgba(0, 212, 255, 0.7)',
-        'rgba(231, 76, 60, 0.7)',
-        'rgba(39, 174, 96, 0.7)',
-        'rgba(243, 156, 18, 0.7)',
-        'rgba(155, 89, 182, 0.7)'
+        'rgba(220, 220, 220, 0.8)',
+        'rgba(160, 160, 160, 0.8)',
+        'rgba(190, 190, 190, 0.8)',
+        'rgba(130, 130, 130, 0.8)',
+        'rgba(200, 200, 200, 0.8)'
     ];
 
     const uniquePredictions = [...new Set(data.predictions)].filter(p => p !== undefined);
@@ -211,15 +211,15 @@ function renderNeuralChart(ctx, data, chartTextColor, chartGridColor) {
                 {
                     label: 'Datos reales',
                     data: historicalData,
-                    backgroundColor: 'rgba(0, 212, 255, 0.5)',
-                    borderColor: '#00d4ff',
+                    backgroundColor: 'rgba(200, 200, 200, 0.5)',
+                    borderColor: '#b0b0b0',
                     pointRadius: 4
                 },
                 {
                     label: 'Predicciones NN',
                     data: predictions,
                     type: 'line',
-                    borderColor: '#f39c12',
+                    borderColor: '#707070',
                     borderWidth: 2,
                     pointRadius: 0,
                     fill: false

@@ -29,7 +29,6 @@ app = FastAPI(title="BizSense API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -149,6 +148,14 @@ async def delete_dataset(dataset_id: int):
 
 @app.post("/train")
 async def train(params: dict):
+    # ponytail: minimal validation for required fields
+    if 'dataset_id' not in params:
+        raise HTTPException(status_code=400, detail="dataset_id is required")
+    if 'x_col' not in params:
+        raise HTTPException(status_code=400, detail="x_col is required")
+    if 'y_col' not in params:
+        raise HTTPException(status_code=400, detail="y_col is required")
+
     try:
         result = train_use_case.execute(
             dataset_id=params['dataset_id'],
@@ -157,7 +164,8 @@ async def train(params: dict):
             alpha=params.get('alpha', 0.01),
             iterations=params.get('iterations', 100),
             model_type=params.get('model_type', 'linear_regression'),
-            k=params.get('k', 3)
+            k=params.get('k', 3),
+            test_size=params.get('test_size', 0.2)
         )
 
         return {
@@ -165,10 +173,14 @@ async def train(params: dict):
             'history': [asdict(step) for step in result.history],
             'x_data': result.x_data,
             'y_data': result.y_data,
-            'x_norm': {'mean': result.x_mean, 'std': result.x_std}
+            'x_norm': {'mean': result.x_mean, 'std': result.x_std},
+            'test_cost': result.test_cost,
+            'test_accuracy': result.test_accuracy
         }
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/trainings")
@@ -232,12 +244,24 @@ async def update_config(params: dict):
 
 @app.post("/predict")
 async def predict(params: dict):
-    predictions = predict_use_case.execute(
-        x_values=params['x_values'],
-        theta=params['theta'],
-        model_type=params.get('model_type', 'linear_regression')
-    )
-    return {'predictions': predictions}
+    # ponytail: minimal validation
+    if 'x_values' not in params:
+        raise HTTPException(status_code=400, detail="x_values is required")
+    if 'theta' not in params:
+        raise HTTPException(status_code=400, detail="theta is required")
+
+    x_norm = params.get('x_norm', {})
+    try:
+        predictions = predict_use_case.execute(
+            x_values=params['x_values'],
+            theta=params['theta'],
+            model_type=params.get('model_type', 'linear_regression'),
+            x_mean=x_norm.get('mean') if isinstance(x_norm, dict) else None,
+            x_std=x_norm.get('std') if isinstance(x_norm, dict) else None
+        )
+        return {'predictions': predictions}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/insights")
